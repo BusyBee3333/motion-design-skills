@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "Polymarket → Sportsbook Odds",
+  "version": "1.0.0",
+  "description": "Converts Polymarket percentages to American sportsbook odds inline on the page. Green = underdog, red = favorite.",
+  "permissions": [],
+  "content_scripts": [
+    {
+      "matches": ["*://polymarket.com/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}
