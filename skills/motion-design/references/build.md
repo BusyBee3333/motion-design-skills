@@ -89,7 +89,7 @@ node render.mjs scenes/film.html --from 6 --to 10           # re-render a sectio
 node render.mjs scenes/film.html --scale 2                  # supersampled (sharper type, slower)
 ```
 
-Speed: DOM styles render about 4-10 frames per second; WebGL shader styles (19-23) are much slower (minutes per loop). Render stills while iterating and the full video once.
+Speed: single DOM styles render about 2-10 frames per second, a 15-20 s film of several scenes takes a few minutes, and WebGL shader styles (19-23) are slower still (minutes per loop). Render stills while iterating and the full video once.
 
 ## Troubleshooting
 
