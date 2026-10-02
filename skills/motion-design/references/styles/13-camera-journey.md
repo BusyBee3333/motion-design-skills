@@ -1,0 +1,9 @@
+# 13 Camera Journey
+**Feeling:** spatial, guided, smooth, cinematic
+**Good for:** explaining a whole flow in one continuous shot (start → build → tune → ship), roadmaps, "how it works" overviews
+**Avoid when:** each step needs a long read; holds are only 0.8 s
+**Mechanism:** one large world canvas (4 station panels on a zig-zag, joined by an SVG rail with a node under each station). A single virtual camera = translate/scale of the world: it holds on a station with a slow 2.2% push, then travels with the premium ease while the zoom dips (30% on short hops, 60% on the long return) so it "dives" between stations. Depth of field: each station blurs and darkens with its world distance from the camera focus (×zoom); the focused one is sharp with an accent outline. The rail lights up to the camera's arc-length position with a spark; a dotted background parallaxes at 0.35×; HUD chips track the active station.
+**Timing:** DUR 6 s; holds 0.8 s each (stations 1-4), hops 0.55 s, long pull-back return 4 → 1 1.15 s. POSTER 1.6.
+**Swap points:** COPY `eyebrow`, `stations[4]` each `{k (title + HUD chip, ≤ 6 letters), tag, sub (≤ 36 chars)}`, `passEyebrow`/`passTitle`/`passNumber` + `chip` (stop 1), `caseEyebrow`/`caseTitle`/`caseNumber`/`caseName` (stops 2 and 4), `dial` (stop 3). Art: `HERO_IMG` constant at the top of the script. Theme roles: --accent (rail, outline, nodes, HUD), --bg2/--bg3 (station panels), --primary (dial).
+**Adapting:** add stations by extending ST (x step 700, alternate y 0/250) and HUD spans, then grow DUR by 1.35 s per station. For 16:9 increase the x spacing and lower the zoom (ZF ≈ 0.9) so neighbours peek in. For a longer video, lengthen H (hold) rather than the travel time.
+**Credits:** Replit Canvas / HyperFrames spatial-pan-stations and camera-journey (one canvas, one camera, stations, DOF on neighbours).

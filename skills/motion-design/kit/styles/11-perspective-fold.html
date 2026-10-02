@@ -1,0 +1,139 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link rel="stylesheet" href="../kit.css"><script src="../kit.js"></script>
+<style>
+#stage{--soft:color-mix(in srgb,var(--primary-hi) 62%,var(--text))}  /* light tint of --primary-hi (box outline) */
+#bg{position:absolute;inset:0;background:radial-gradient(80% 60% at 50% 45%,color-mix(in srgb,var(--bg2) 85%,var(--bg3)) 0%,color-mix(in srgb,var(--bg) 55%,var(--bg2)) 60%,var(--bg) 100%)}
+#floorglow{position:absolute;left:40px;right:40px;top:960px;height:360px;border-radius:50%;
+  background:radial-gradient(closest-side,rgb(var(--accent-rgb) / .35),rgb(var(--primary-rgb) / .12) 55%,transparent);filter:blur(10px)}
+.scene{position:absolute;inset:0;perspective:1700px;perspective-origin:540px 985px}
+.panel{position:absolute;left:110px;top:196px;width:860px;height:860px;border-radius:40px;transform-origin:50% 100%;overflow:hidden;
+  background:linear-gradient(172deg,color-mix(in srgb,var(--bg3) 95%,var(--primary-lo)) 0%,color-mix(in srgb,var(--bg2) 75%,var(--bg3)) 55%,color-mix(in srgb,var(--bg2) 80%,var(--bg)) 100%);
+  box-shadow:inset 0 0 0 2px rgb(var(--text-rgb) / .14),inset 0 2px 0 rgba(255,255,255,.18);backface-visibility:hidden}
+.panel .sheen{position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.07),transparent 30%)}
+.panel .ice{position:absolute;inset:0;background:linear-gradient(0deg,color-mix(in srgb,var(--accent) 55%,#fff) 0%,var(--accent) 40%,color-mix(in srgb,var(--accent) 70%,var(--accent-lo)) 100%);opacity:0}
+.panel .in{position:absolute;inset:0;padding:60px 64px}
+.pe{font-family:var(--mono);font-weight:700;font-size:24px;letter-spacing:.2em;color:var(--accent);display:flex;justify-content:space-between}
+.pe b{color:rgb(var(--text-rgb) / .45);font-weight:500}
+.vis{position:absolute;left:64px;right:64px;top:128px;height:350px;border-radius:26px;background:rgb(var(--deep-rgb) / .45);box-shadow:inset 0 0 0 2px rgb(var(--text-rgb) / .07);overflow:hidden}
+.pd{position:absolute;left:64px;right:40px;top:506px;font-size:134px}
+.pd.one{font-size:220px;top:520px}
+.ps{position:absolute;left:66px;bottom:50px;font-family:var(--sans);font-weight:600;font-size:40px;color:rgb(var(--text-rgb) / .78)}
+#strip{position:absolute;left:80px;width:920px;top:1052px;height:10px;border-radius:6px;background:linear-gradient(90deg,transparent,var(--accent) 12%,color-mix(in srgb,var(--accent) 20%,#fff) 50%,var(--accent) 88%,transparent)}
+#stripglow{position:absolute;left:60px;width:960px;top:1007px;height:100px;border-radius:50%;background:radial-gradient(closest-side,rgb(var(--accent-rgb) / .8),rgb(var(--accent-rgb) / 0));filter:blur(14px)}
+#steps{position:absolute;left:110px;right:110px;top:1130px;display:flex;gap:24px}
+.st{flex:1;font-family:var(--mono);font-weight:700;font-size:22px;letter-spacing:.14em;text-transform:uppercase;color:rgb(var(--text-rgb) / .4)}
+.st i{display:block;height:4px;border-radius:2px;background:rgb(var(--text-rgb) / .14);margin-bottom:16px;position:relative;overflow:hidden}
+.st i u{position:absolute;left:0;top:0;bottom:0;background:var(--accent);width:0}
+#eb{position:absolute;left:0;right:0;top:100px;text-align:center}
+.mslab{left:50%;top:50%}
+</style></head><body><div id="stage">
+<div id="bg"></div><div id="floorglow"></div>
+<div class="scene" id="sc">
+ <div class="panel" id="p0"><div class="sheen"></div><div class="in">
+   <div class="pe"><span data-copy="num1"></span><b data-copy="tag1"></b></div>
+   <div class="vis"><div id="mwrap" style="position:absolute;left:50%;top:50%;width:0;height:0">
+     <div class="slab mslab" style="--s:.47;left:-99px;top:-165px;backdrop-filter:none"><div class="slab-label"><div class="l1" data-copy="caseEyebrow"></div><div class="l2" data-copy="caseTitle"></div><div class="grade" data-copy="caseNumber"></div></div>
+     <div class="slab-window"><div class="card"><!-- ART HOOK: add style="--art:url(your.png)" to swap the card art --><div class="art"></div><div class="name" data-copy="caseName"></div><div class="meta"></div></div></div><div class="glare" id="g0"></div></div></div>
+     <svg id="burst" width="732" height="350" style="position:absolute;left:0;top:0"></svg></div>
+   <div class="pd one display"><span class="foiltext" id="f0" data-copy="word1"></span></div>
+ </div><div class="ice"></div></div>
+ <div class="panel" id="p1"><div class="sheen"></div><div class="in">
+   <div class="pe"><span data-copy="num2"></span><b data-copy="tag2"></b></div>
+   <div class="vis"><svg width="732" height="350" viewBox="0 0 732 350" style="position:absolute;left:0;top:0">
+     <g id="ring" transform="translate(366 175)"><circle r="128" fill="none" style="stroke:rgb(var(--accent-rgb) / .25)" stroke-width="4" stroke-dasharray="6 14"/></g>
+     <circle cx="366" cy="175" r="96" style="fill:rgb(var(--accent-rgb) / .10);stroke:var(--accent)" stroke-width="6"/>
+     <path id="chk" d="M322 178 L355 210 L414 145" fill="none" style="stroke:var(--text)" stroke-width="14" stroke-linecap="round" stroke-linejoin="round" pathLength="1" stroke-dasharray="1 1"/>
+   </svg></div>
+   <div class="pd display"><span data-copy="lead2"></span><br><span class="foiltext" id="f1" data-copy="word2"></span></div>
+   <div class="ps" data-copy="sub2"></div>
+ </div><div class="ice"></div></div>
+ <div class="panel" id="p2"><div class="sheen"></div><div class="in">
+   <div class="pe"><span data-copy="num3"></span><b data-copy="tag3"></b></div>
+   <div class="vis"><svg width="732" height="350" viewBox="0 0 732 350" style="position:absolute;left:0;top:0">
+     <g id="box" transform="translate(366 190)" fill="none" stroke-linejoin="round" stroke-width="6">
+       <path d="M-120 -40 L0 -100 L120 -40 L0 20 Z" style="fill:color-mix(in srgb,var(--primary-hi) 35%,transparent);stroke:var(--soft)"/>
+       <path d="M-120 -40 L-120 80 L0 140 L0 20 Z" style="fill:rgb(var(--primary-rgb) / .35);stroke:var(--soft)"/>
+       <path d="M120 -40 L120 80 L0 140 L0 20 Z" style="fill:color-mix(in srgb,var(--primary-lo) 55%,transparent);stroke:var(--soft)"/>
+       <path d="M-60 -70 L60 -10" style="stroke:var(--accent)" stroke-width="10"/>
+     </g>
+     <g id="arrow" style="stroke:var(--accent)" stroke-width="8" stroke-linecap="round" fill="none"><path d="M560 190 L650 190 M622 160 L652 190 L622 220"/></g>
+     <g id="arrow2" style="stroke:rgb(var(--text-rgb) / .55)" stroke-width="8" stroke-linecap="round" fill="none"><path d="M172 190 L82 190 M110 160 L80 190 L110 220"/></g>
+   </svg></div>
+   <div class="pd display"><span data-copy="lead3"></span><br><span class="foiltext" id="f2" data-copy="word3"></span></div>
+   <div class="ps" data-copy="sub3"></div>
+ </div><div class="ice"></div></div>
+</div>
+<div id="stripglow"></div><div id="strip"></div>
+<div id="steps"><div class="st"><i><u></u></i><span data-copy="rail1"></span></div><div class="st"><i><u></u></i><span data-copy="rail2"></span></div><div class="st"><i><u></u></i><span data-copy="rail3"></span></div></div>
+<div id="eb" class="eyebrow" data-copy="eyebrow"></div>
+<div class="grain"></div><div class="vignette"></div>
+</div>
+<script>
+window.DUR=6; window.POSTER=1.2;
+// COPY: eyebrow = top line; numN/tagN = panel N header (left/right); word1 = panel 1 big word (≤ 6 letters);
+// leadN/wordN/subN = panel 2-3 two-line headline (≤ 8 letters per line) + small line under it; rail1-3 = labels on the progress rail;
+// caseEyebrow/caseTitle/caseNumber/caseName = label of the showcase case on panel 1.
+const COPY = K.copy({
+  eyebrow:'Lumen',
+  num1:'Step 01', tag1:'Every idea', word1:'Sketch',
+  num2:'Step 02', tag2:'One pass', lead2:'Make it', word2:'move', sub2:'on a single timeline',
+  num3:'Step 03', tag3:'Your choice', lead3:'Export', word3:'anywhere', sub3:'or keep it in the library',
+  rail1:'Sketch', rail2:'Animate', rail3:'Export',
+  caseEyebrow:'LUMEN LIBRARY', caseTitle:'SHOWCASE', caseNumber:'01', caseName:'Lumen Wisp'
+});
+K.fill(COPY);
+const {seg,smoother,lerp,clamp,outExpo,inExpo,premium,emph,accel,$,$$,css}=K;
+const P=[$('#p0'),$('#p1'),$('#p2')], SEG=2.0;
+// burst rays behind the showcase case
+let rays=''; for(let i=0;i<24;i++){const a=i/24*Math.PI*2; rays+=`<line x1="${366+Math.cos(a)*150}" y1="${175+Math.sin(a)*150}" x2="${366+Math.cos(a)*(230+K.hash(i)*90)}" y2="${175+Math.sin(a)*(230+K.hash(i)*90)}" style="stroke:${i%3?'rgb(var(--accent-rgb) / .35)':'rgb(var(--warm-rgb) / .5)'}" stroke-width="5" stroke-linecap="round"/>`;}
+$('#burst').innerHTML=rays; $('#burst').style.zIndex=-1; $('#mwrap').style.zIndex=2;
+const steps=$$('.st'), bars=$$('.st u');
+window.frame=function(t){
+  t=((t%DUR)+DUR)%DUR;
+  let stripE=0;
+  P.forEach((p,i)=>{
+    const u=t-i*SEG; // local time in this panel's slot (wrapping for the last fold into the first rise)
+    const L=((u%DUR)+DUR)%DUR;
+    // rise 0..0.62 (emphasized decel), hold, fold 1.5..1.98 (accelerating)
+    let ang, vis=true;
+    if(L<0.62) ang=90*(1-emph(L/0.62));
+    else if(L<1.5) ang=0;
+    else if(L<1.98) ang=90*accel((L-1.5)/0.48);
+    else {ang=90; vis=false;}
+    // ice luminance rises as the panel goes flat
+    const ice=Math.pow(ang/90,1.6);
+    p.style.visibility=vis&&ang<89.9?'visible':'hidden';
+    const hold=clamp((L-0.62)/0.88);
+    p.style.transform=`rotateX(${ang.toFixed(3)}deg) scale(${(1+0.025*(L<1.5?hold:1)).toFixed(4)})`;
+    p.querySelector('.ice').style.opacity=(ice*0.95).toFixed(3);
+    p.querySelector('.in').style.opacity=(1-ice*0.9).toFixed(3);
+    // content stagger on the rise
+    const kids=[p.querySelector('.pe'),p.querySelector('.vis'),p.querySelector('.pd'),p.querySelector('.ps')].filter(Boolean);
+    kids.forEach((k,j)=>{const e=outExpo(seg(L,0.06+j*0.07,0.66+j*0.07)); k.style.transform=`translateY(${((1-e)*40).toFixed(1)}px)`; k.style.opacity=(L>1.9?1:e).toFixed(3);});
+    const fo=p.querySelector('.foiltext'); if(fo) fo.style.backgroundPosition=`${(L/2*220).toFixed(1)}% 0`;
+    // progress bars
+    const fill = L<1.98? smoother(seg(L,0.2,1.8)) : 0;
+    bars[i].style.width=(fill*100).toFixed(2)+'%';
+    steps[i].style.color= L<1.98? `rgb(var(--text-rgb) / ${(0.4+0.55*smoother(seg(L,0.1,0.5))*(1-smoother(seg(L,1.7,1.98)))).toFixed(3)})`:'rgb(var(--text-rgb) / .4)';
+  });
+  // strip energy peaks at each hand-off (t = 0, 2, 4)
+  for(let k=-1;k<=3;k++){const d=t-k*SEG; stripE+=Math.exp(-(d*d)/(2*0.16*0.16));}
+  stripE=clamp(stripE);
+  css('#strip',{opacity:(0.45+0.55*stripE).toFixed(3),transform:`scaleX(${(0.9+0.1*stripE).toFixed(4)}) scaleY(${(0.6+0.6*stripE).toFixed(3)})`});
+  css('#stripglow',{opacity:(0.35+0.65*stripE).toFixed(3),transform:`scaleY(${(0.8+0.6*stripE).toFixed(3)})`});
+  css('#floorglow',{opacity:(0.55+0.45*stripE).toFixed(3)});
+  // panel-specific tertiary detail
+  const L0=((t%DUR)+DUR)%DUR, L1=((t-2)%DUR+DUR)%DUR, L2=((t-4)%DUR+DUR)%DUR;
+  $('#g0').style.setProperty('--g',(lerp(-0.4,1.4,smoother(seg(L0,0.45,1.6)))).toFixed(3));
+  $('#mwrap').style.transform=`scale(${(0.9+0.1*outExpo(seg(L0,0.2,0.9))).toFixed(4)}) rotate(${(-4+3*smoother(seg(L0,0.2,1.6))).toFixed(2)}deg)`;
+  $('#burst').style.transform=`rotate(${(L0*8).toFixed(2)}deg)`; $('#burst').style.transformOrigin='366px 175px';
+  $('#burst').style.opacity=(outExpo(seg(L0,0.3,0.9))).toFixed(3);
+  $('#ring').setAttribute('transform',`translate(366 175) rotate(${(L1*40).toFixed(2)})`);
+  $('#chk').setAttribute('stroke-dashoffset',(1-smoother(seg(L1,0.45,0.95))).toFixed(4));
+  $('#box').setAttribute('transform',`translate(366 ${(190-6*Math.sin(L2*Math.PI)).toFixed(2)})`);
+  const ar=smoother(seg(L2,0.5,1.0));
+  $('#arrow').setAttribute('transform',`translate(${((1-ar)*-30).toFixed(1)} 0)`); $('#arrow').style.opacity=ar.toFixed(3);
+  $('#arrow2').setAttribute('transform',`translate(${((1-ar)*30).toFixed(1)} 0)`); $('#arrow2').style.opacity=ar.toFixed(3);
+};
+frame(0);
+</script></body></html>

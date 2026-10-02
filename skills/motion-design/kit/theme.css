@@ -1,0 +1,28 @@
+/* theme.css: the ONE file to edit to rebrand every style.
+   Roles, not colours: pick your brand's values for each role.
+   Keep --*-rgb in sync with the hex above it (space-separated r g b), they drive translucent glows. */
+@font-face{font-family:'Big Shoulders Display';font-weight:700;src:url(fonts/BigShouldersDisplay-700.woff)}
+@font-face{font-family:'Big Shoulders Display';font-weight:800;src:url(fonts/BigShouldersDisplay-800.woff)}
+@font-face{font-family:'Big Shoulders Display';font-weight:900;src:url(fonts/BigShouldersDisplay-900.woff)}
+@font-face{font-family:'Instrument Sans';font-weight:500;src:url(fonts/InstrumentSans-500.woff)}
+@font-face{font-family:'Instrument Sans';font-weight:600;src:url(fonts/InstrumentSans-600.woff)}
+@font-face{font-family:'Instrument Sans';font-weight:700;src:url(fonts/InstrumentSans-700.woff)}
+@font-face{font-family:'JetBrains Mono';font-weight:500;src:url(fonts/JetBrainsMono-500.woff)}
+@font-face{font-family:'JetBrains Mono';font-weight:700;src:url(fonts/JetBrainsMono-700.woff)}
+
+:root{
+  /* Default theme "Midnight Foil": deep ink background, violet primary, ice accent, warm white text. */
+  --bg:#100D20;  --bg2:#1B1638; --bg3:#2A2354;          /* background, raised surface, higher surface */
+  --primary:#6552C8; --primary-hi:#8B7BF0; --primary-lo:#3E3190;   /* main brand colour */
+  --accent:#8EE9EE;  --accent-lo:#4FB9C4;                /* highlight / "live" colour */
+  --text:#F5F1E9;    --text2:#E9E3D6;                    /* light text and light surfaces (labels, tickets) */
+  --warm:#F2C46B;    --warm-lo:#E7A94E;                  /* warm secondary (card body, celebration) */
+  --pop:#F09CC6;                                          /* extra accent used in foil and confetti */
+  --bg-rgb:16 13 32; --deep-rgb:6 4 16; --primary-rgb:101 82 200; --accent-rgb:142 233 238; --text-rgb:245 241 233; --warm-rgb:242 196 107; --pop-rgb:240 156 198;
+  --foil:linear-gradient(105deg,var(--accent) 0%,var(--primary-hi) 26%,var(--pop) 50%,var(--warm) 74%,var(--accent) 100%);
+  /* Type roles: big condensed display, clean body sans, mono labels. */
+  --display:'Big Shoulders Display',sans-serif;
+  --sans:'Instrument Sans',sans-serif;
+  --mono:'JetBrains Mono',monospace;
+  --W:1080px; --H:1350px;
+}

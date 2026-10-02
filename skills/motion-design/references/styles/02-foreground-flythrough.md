@@ -1,0 +1,9 @@
+# 02 Fly-Through
+**Feeling:** bold, fast, cinematic, confident
+**Good for:** going from a big claim to the proof in one cut; chapter openers; headline → product reveal
+**Avoid when:** the headline is long or needs to be read slowly, or the scene underneath has nothing worth revealing
+**Mechanism:** the two-line claim is one layer plus 11 duplicated trail layers. Log-scale zoom (1 → 16x, inCubic) toward the camera; each trail is scaled by (1-0.055·v)^i behind the motion direction with rising blur, giving a radial zoom-blur streak. A screen-blend bloom fires as the type passes the lens. The destination "hub" wall (3x2 showcase cases on lit rails) sits underneath the whole time: blur 16→0, background dim .62→0, scale 1.16→1, then the cases settle with a 40-100 ms stagger.
+**Timing:** claim hold 4.55→1.30 s (wraps) with 3.5% push; fly-out 1.30→2.00 s; hub settles 1.45→2.55 s; hub read 2.0→3.7 s (glare sweeps, 2.5% push); claim re-forms from behind the camera 3.70→4.55 s (outQuint). DUR 5 s, POSTER 2.9 s.
+**Swap points:** COPY `claimTop` / `claimBottom` (≤ 8 chars each at 262 px), `claimEyebrow`, `claimSub` (≤ 30 chars), `hubEyebrow`, `hubHeadline` (≤ 12 chars), `hubSub` (≤ 45 chars), `caseEyebrow`, `caseTitle`, `cardNames` (6). Art: `CARD_ART` array of 6 image URLs at the top of the script (empty = generated art). Theme roles: `--text` + foil (claim), `--primary-hi`/`--primary` (wall glow, flash), `--accent` (rails), `--warm`/`--accent`/`--pop` (card colours).
+**Adapting:** Replace `#shelf` with any scene (a product UI, a single hero) — the fly-through only needs something under it. In an edit, use 0→2.6 s as a one-way transition and cut. For 16:9, drop the claim font size to ~200 px and lay the hub out 4x2.
+**Credits:** Contra "Creative Arena", Wonder and Bolt.new launch films (type that flies through the lens to reveal the next scene), via motion-video-kit.

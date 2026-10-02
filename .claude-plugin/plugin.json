@@ -1,0 +1,10 @@
+{
+  "name": "motion-design",
+  "version": "1.0.0",
+  "description": "Guided motion-design videos for agents: a short intake, a shot plan you approve, then 28 deterministic HTML-to-video styles rendered to MP4.",
+  "author": { "name": "BusyBee3333" },
+  "homepage": "https://github.com/BusyBee3333/motion-design-skills",
+  "repository": "https://github.com/BusyBee3333/motion-design-skills",
+  "license": "MIT",
+  "keywords": ["motion design", "video", "animation", "explainer", "launch video", "skills"]
+}

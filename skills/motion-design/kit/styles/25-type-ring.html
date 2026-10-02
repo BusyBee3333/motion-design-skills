@@ -1,0 +1,135 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link rel="stylesheet" href="../kit.css"><script src="../kit.js"></script>
+<style>
+#bg{position:absolute;inset:0;background:
+  radial-gradient(56% 42% at 50% 42%,color-mix(in srgb,var(--primary-lo) 45%,var(--bg2)) 0%,color-mix(in srgb,var(--bg2) 75%,var(--bg)) 48%,var(--bg) 80%)}
+#dots{position:absolute;inset:0;background:radial-gradient(circle,rgb(var(--text-rgb) / .10) 1.2px,transparent 1.8px) 0 0/30px 30px;
+  -webkit-mask:radial-gradient(60% 50% at 50% 43%,#000 0%,transparent 85%)}
+#rings{position:absolute;left:0;top:0}
+.ring{position:absolute;left:0;top:0;width:0;height:0}
+.gl{position:absolute;left:0;top:0;white-space:pre;transform-origin:0 0}
+#outer .gl{font-family:var(--display);font-weight:900;font-size:62px;line-height:1;color:var(--text);text-transform:uppercase}
+#outer .gl.dot{color:var(--primary-hi)}
+#outer .gl.ice{color:var(--accent)}
+#inner .gl{font-family:var(--mono);font-weight:700;font-size:22px;line-height:1;letter-spacing:0;color:rgb(var(--text-rgb) / .7)}
+#inner .gl.dot{color:var(--accent)}
+#halo{position:absolute;left:240px;top:280px;width:600px;height:600px;border-radius:50%;background:radial-gradient(closest-side,rgb(var(--primary-rgb) / .6),rgb(var(--primary-rgb) / 0))}
+#slabwrap{position:absolute;left:393px;top:338px;width:294px;height:490px}
+#inf{position:absolute;left:0;top:0}
+.chrome{position:absolute;font-family:var(--mono);font-weight:700;font-size:18px;letter-spacing:.2em;color:rgb(var(--text-rgb) / .55);text-transform:uppercase}
+#tl{left:48px;top:44px} #tr{right:48px;top:44px;text-align:right}
+#tl b,#tr b{color:var(--accent)}
+#rule{position:absolute;left:48px;right:48px;top:1286px;height:1px;background:rgb(var(--text-rgb) / .22)}
+#head{position:absolute;left:0;right:0;top:1118px;text-align:center;font-size:94px;white-space:nowrap}
+#url{position:absolute;left:48px;right:48px;top:1300px;display:flex;justify-content:space-between;font-family:var(--mono);font-weight:700;font-size:18px;letter-spacing:.2em;color:rgb(var(--text-rgb) / .55);text-transform:uppercase}
+</style></head><body><div id="stage">
+<div id="bg"></div><div id="dots"></div><div id="halo"></div>
+<svg id="rings" width="1080" height="1350"><defs>
+  <linearGradient id="foil" x1="0" y1="0" x2="1" y2="0"><stop offset="0" style="stop-color:var(--accent)"/><stop offset=".3" style="stop-color:color-mix(in srgb,var(--primary-hi) 60%,var(--text))"/><stop offset=".55" style="stop-color:var(--pop)"/><stop offset=".8" style="stop-color:var(--warm)"/><stop offset="1" style="stop-color:var(--accent)"/></linearGradient>
+  <filter id="soft"><feGaussianBlur stdDeviation="10"/></filter></defs>
+  <g id="hair"></g><g id="ticks"></g>
+  <g id="inf"><path id="infglow" fill="none" stroke="url(#foil)" stroke-width="30" stroke-linecap="round" filter="url(#soft)" opacity=".7"/>
+     <path id="infp" fill="none" stroke="url(#foil)" stroke-width="22" stroke-linecap="round"/></g>
+</svg>
+<div class="ring" id="inner"></div>
+<div class="ring" id="outer"></div>
+<!-- showcase case. Your own art: <div class="art" style="--art:url(your-image.png)"></div> -->
+<div id="slabwrap"><div class="slab" style="--s:.7">
+  <div class="slab-label"><div class="l1" data-copy="caseEyebrow"></div><div class="l2" data-copy="caseTitle"></div><div class="grade" data-copy="caseNumber"></div></div>
+  <div class="slab-window"><div class="card"><div class="art"></div><div class="name" data-copy="cardName"></div><div class="meta"></div></div></div>
+  <div class="glare"></div></div></div>
+<div class="chrome" id="tl"><b data-copy="brand"></b> · <span data-copy="figure"></span></div>
+<div class="chrome" id="tr"><span data-copy="cornerRight"></span> <b>●</b></div>
+<div id="head" class="display"><span id="h1" data-copy="headA"></span> <span id="h2" class="foiltext" data-copy="headB"></span></div>
+<div id="rule"></div>
+<div id="url"><span data-copy="footLeft"></span><span data-copy="footRight"></span></div>
+<div class="grain"></div><div class="vignette"></div>
+</div>
+<script>
+window.DUR=6; window.POSTER=3.2;
+const {seg,smoother,lerp,outExpo,inExpo,premium,emph,outBack,inOutSine,hash,$,$$,css}=K;
+// COPY keys: outerRing (big display ring text, ~40 chars incl. separators, ends with ' · '), ringAccent (substring of outerRing drawn
+// in the accent colour), innerRing (small mono ring, ~50 chars), headA / headB (headline halves, headB in foil, ~12 chars each),
+// brand + figure + cornerRight (top corner chrome), footLeft / footRight (bottom row), caseEyebrow / caseTitle / caseNumber / cardName (showcase case).
+const COPY = K.copy({outerRing:'SKETCH · ANIMATE · SHIP · MAKE IT MOVE · ', ringAccent:'MAKE IT MOVE',
+  innerRing:'FROM FIRST SKETCH TO FINAL CUT · IDEAS, IN MOTION · ', headA:'Ideas,', headB:'in motion.',
+  brand:'LUMEN', figure:'FIG. 25', cornerRight:'ON LOOP', footLeft:'lumen.example', footRight:'Make it move',
+  caseEyebrow:'LUMEN · NO. 0025', caseTitle:'SHOWCASE', caseNumber:'01', cardName:'Halo Drift'});
+K.fill(COPY);
+const CX=540, CY=583;
+const RO=436, RI=318;         // outer display ring, inner mono ring (baseline radii)
+// ---- hairline rings (draw-on via dash) ----
+const HR=[{r:500,w:1.5,o:.45},{r:476,w:1,o:.25,dash:'2 9'},{r:384,w:1.2,o:.35},{r:292,w:1,o:.22,dash:'1 6'}];
+const hair=$('#hair');
+HR.forEach(h=>{const c=document.createElementNS('http://www.w3.org/2000/svg','circle');c.setAttribute('cx',CX);c.setAttribute('cy',CY);c.setAttribute('r',h.r);
+  c.setAttribute('fill','none');c.style.stroke=`rgb(var(--text-rgb) / ${h.o})`;c.setAttribute('stroke-width',h.w);h.el=c;h.C=2*Math.PI*h.r;hair.appendChild(c);
+  if(h.dash){const g=document.createElementNS('http://www.w3.org/2000/svg','circle');['cx','cy','r'].forEach(k=>g.setAttribute(k,c.getAttribute(k)));
+    g.setAttribute('fill','none');g.style.stroke=`rgb(var(--accent-rgb) / ${h.o+.2})`;g.setAttribute('stroke-width',4);g.setAttribute('stroke-dasharray',h.dash);h.d=g;hair.appendChild(g);}});
+// tick ring (60 ticks, every 5th long)
+const ticks=$('#ticks'); const TK=[];
+for(let i=0;i<72;i++){const l=document.createElementNS('http://www.w3.org/2000/svg','line');const L=i%6===0?22:9;
+  l.setAttribute('x1',0);l.setAttribute('x2',0);l.setAttribute('y1',-512);l.setAttribute('y2',-512-L);
+  l.style.stroke=i%6===0?'rgb(var(--accent-rgb) / .8)':'rgb(var(--text-rgb) / .35)';l.setAttribute('stroke-width',i%6===0?2.5:1.5);ticks.appendChild(l);TK.push(l);}
+// ∞ focal mark
+(function(){let d='';for(let k=0;k<=160;k++){const s=k/160*2*Math.PI, q=1+Math.sin(s)**2; d+=(k?'L':'M')+(CX+150*Math.cos(s)/q).toFixed(1)+','+(CY+150*Math.sin(s)*Math.cos(s)/q*1.15).toFixed(1);} $('#infp').setAttribute('d',d+'Z');$('#infglow').setAttribute('d',d+'Z');})();
+// ---- glyph rings ----
+const OUTER=COPY.outerRing, INNER=COPY.innerRing;
+let built=false; const rings={outer:[],inner:[]};
+function build(id,txt,reps,R,font){
+  const el=$('#'+id); el.innerHTML=''; const cv=document.createElement('canvas').getContext('2d'); cv.font=font;
+  const full=txt.repeat(reps), ws=[...full].map(c=>cv.measureText(c).width), tot=ws.reduce((a,b)=>a+b,0);
+  const C=2*Math.PI*R, gap=(C-tot)/full.length; let acc=0; const arr=[];
+  const ai=OUTER.indexOf(COPY.ringAccent), iceWords=id==='outer'&&ai>=0?[[ai,ai+COPY.ringAccent.length]]:[];
+  [...full].forEach((ch,i)=>{const d=document.createElement('div'); d.className='gl'; d.textContent=ch;
+    const li=i%txt.length; if(ch==='·')d.classList.add('dot'); if(iceWords.some(w=>li>=w[0]&&li<w[1]))d.classList.add('ice');
+    const a=(acc+ws[i]/2+gap/2)/C*360; acc+=ws[i]+gap; el.appendChild(d); arr.push({d,a,w:ws[i],k:i/full.length});});
+  rings[id]=arr;
+}
+function ensure(){ if(built)return; if(!document.fonts.check('900 62px "Big Shoulders Display"')){ if(!rings.outer.length){build('outer',OUTER,2,RO,"900 62px 'Big Shoulders Display'");build('inner',INNER,2,RI,"700 22px 'JetBrains Mono'");} return;}
+  build('outer',OUTER,2,RO,"900 62px 'Big Shoulders Display'"); build('inner',INNER,2,RI,"700 22px 'JetBrains Mono'"); built=true; }
+const slab=$('#slabwrap .slab'), wrap=$('#slabwrap');
+// rotation profile: fast spin-in at ~0.5 s, near-still at ~3.5 s; integral over loop = 1 (seamless)
+const prof=(u,a=.82,ph=.08)=>u + a*(Math.sin(2*Math.PI*(u-ph))+Math.sin(2*Math.PI*ph))/(2*Math.PI);
+window.frame=function(t){
+  ensure();
+  t=((t%DUR)+DUR)%DUR; const u=t/DUR;
+  // ---- ring draw-on / off ----
+  HR.forEach((h,i)=>{const on=premium(seg(t,.05+i*.08,.95+i*.08)), off=K.inCubic(seg(t,5.05+i*.05,5.6+i*.05));
+    const vis=on*(1-off), rot=(i%2?-1:1)*360*u*(i+1)*.5 - 90;
+    h.el.setAttribute('stroke-dasharray',`${(h.C*vis).toFixed(1)} ${h.C}`); h.el.setAttribute('transform',`rotate(${rot} ${CX} ${CY})`);
+    if(h.d){h.d.setAttribute('transform',`rotate(${((i%2?1:-1)*360*u).toFixed(2)} ${CX} ${CY})`); h.d.setAttribute('opacity',vis.toFixed(3));}});
+  // tick ring: always on (never a dead frame), turns 30° per loop
+  const tr=-30*u; TK.forEach((l,i)=>l.setAttribute('transform',`translate(${CX} ${CY}) rotate(${(i*5+tr).toFixed(2)})`));
+  css('#ticks',{opacity:(.55+.45*smoother(seg(t,0,.8))*(1-smoother(seg(t,5.2,5.9)))).toFixed(3)});
+  // ---- glyph rings ----
+  const rotO=360/2*prof(u), rotI=-360/2*prof(u,.7,.12);
+  for(const [id,R,rot,a0,a1,o0] of [['outer',RO,rotO,.15,.95,5.0],['inner',RI,rotI,.35,1.05,4.9]]){
+    rings[id].forEach(g=>{
+      const k=g.k, inU=seg(t,a0+k*.55,a0+k*.55+.32), outU=seg(t,o0+k*.4,o0+k*.4+.22);
+      const sc=outBack(inU,2.2)*(1-K.inCubic(outU)); const op=Math.min(1,inU*3)*(1-outU);
+      const a=(g.a+rot)*Math.PI/180, x=CX+Math.sin(a)*R, y=CY-Math.cos(a)*R;
+      g.d.style.transform=`translate(${x.toFixed(1)}px,${y.toFixed(1)}px) rotate(${(g.a+rot).toFixed(2)}deg) scale(${Math.max(0,sc).toFixed(3)}) translate(-50%,-50%)`;
+      g.d.style.opacity=op.toFixed(3);
+    });
+  }
+  // ---- ∞ focal mark ⇄ showcase case ----
+  const infOut=K.inCubic(seg(t,.75,1.0)), infIn=outBack(seg(t,5.25,5.7),1.9);
+  const infS = t<3 ? (1-infOut)*(1+.05*Math.sin(2*Math.PI*t/1.2)) : infIn*(1+.05*Math.sin(2*Math.PI*t/1.2));
+  const pulse=1+.04*Math.sin(2*Math.PI*u*5);
+  $('#inf').setAttribute('transform',`translate(${CX} ${CY}) scale(${(Math.max(0,infS)*pulse).toFixed(4)}) translate(${-CX} ${-CY})`);
+  $('#infp').setAttribute('stroke-dasharray','40 14'); $('#infp').setAttribute('stroke-dashoffset',(-u*54*12).toFixed(1));
+  // showcase case pops in with ~12% overshoot, sways, then anticipates (+4%) and pops out
+  const sin_=outBack(seg(t,.9,1.4),2.0), ant=smoother(seg(t,4.95,5.07)), sout=K.inCubic(seg(t,5.07,5.3));
+  const ss=t<3? sin_ : (1+.045*ant)*(1-sout);
+  const sway=Math.sin(2*Math.PI*u)*6;
+  css(wrap,{transform:`perspective(1200px) rotateY(${sway.toFixed(2)}deg) rotate(${((1-Math.min(1,sin_))*-14+sout*10).toFixed(2)}deg) scale(${Math.max(0,ss).toFixed(4)})`,opacity:(t<3?Math.min(1,seg(t,.9,1.05)):1-seg(t,5.2,5.3)).toFixed(3)});
+  css(slab,{'--g':(inOutSine(seg(t,1.4,3.4))*1.4-.2).toFixed(3)});
+  css('#halo',{opacity:(.45+.35*smoother(seg(t,.9,1.6))*(1-smoother(seg(t,5,5.6)))+.08*Math.sin(2*Math.PI*u*2)).toFixed(3)});
+  // ---- headline: letter-spacing type-in (motion-frames), fast exit ----
+  [['#h1',1.35],['#h2',1.5]].forEach(([s,a])=>{const e=emph(seg(t,a,a+.7)), v=smoother(seg(t,a,a+.45)), o=inExpo(seg(t,4.7,5.0));
+    css(s,{display:'inline-block',letterSpacing:`${lerp(.14,.01,e).toFixed(3)}em`,opacity:(v*(1-o)).toFixed(3),filter:`blur(${((1-v)*8+o*6).toFixed(2)}px)`,transform:`translateY(${(-o*30).toFixed(1)}px)`});});
+  css('#head',{transform:`scale(${(1+.025*smoother(seg(t,1.4,4.8))).toFixed(4)})`});
+  css('#h2',{backgroundPosition:`${(u*220).toFixed(1)}% 0`});
+};
+frame(0);
+</script></body></html>

@@ -1,0 +1,79 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link rel="stylesheet" href="../kit.css"><script src="../kit.js"></script>
+<style>
+#bg{position:absolute;inset:0;background:radial-gradient(60% 45% at 50% 40%,color-mix(in srgb,var(--bg2) 55%,var(--bg3)) 0%,color-mix(in srgb,var(--bg) 65%,var(--bg2)) 55%,var(--bg) 100%)}
+#beam{position:absolute;left:-200px;right:-200px;top:-300px;height:1300px;background:radial-gradient(40% 50% at 50% 30%,color-mix(in srgb,var(--primary-hi) 22%,transparent),transparent 70%);mix-blend-mode:screen}
+.hair{position:absolute;background:rgb(var(--text-rgb) / .35)}
+#hl{left:90px;top:96px;height:1px;width:900px;transform-origin:0 0}
+#hr{left:90px;bottom:96px;height:1px;width:900px;transform-origin:100% 0}
+#vl{left:90px;top:96px;width:1px;height:1158px;transform-origin:0 0}
+#vr{right:90px;top:96px;width:1px;height:1158px;transform-origin:0 100%}
+.corner{position:absolute;font-family:var(--mono);font-weight:500;font-size:18px;letter-spacing:.3em;color:rgb(var(--text-rgb) / .6)}
+#c1{left:120px;top:126px}#c2{right:120px;top:126px}
+#slabwrap{position:absolute;left:540px;top:560px;width:0;height:0;perspective:2200px}
+#slabwrap .slab{left:-241px;top:-402px;--s:1.15}
+#floor{position:absolute;left:290px;top:990px;width:500px;height:60px;border-radius:50%;background:radial-gradient(closest-side,rgb(var(--primary-rgb) / .55),transparent);filter:blur(10px)}
+.cap{position:absolute;left:0;right:0;top:1086px;text-align:center;font-family:var(--sans);font-weight:500;text-transform:uppercase;font-size:44px;color:var(--text);white-space:nowrap}
+.sub{position:absolute;left:0;right:0;top:1160px;text-align:center;font-family:var(--mono);font-weight:500;font-size:20px;letter-spacing:.42em;color:rgb(var(--accent-rgb) / .85);text-transform:uppercase}
+#rule{position:absolute;left:490px;top:1146px;width:100px;height:1px;background:var(--accent)}
+#gleam{position:absolute;left:90px;top:95px;width:220px;height:3px;background:linear-gradient(90deg,transparent,var(--accent),transparent);filter:blur(1px)}
+</style></head><body><div id="stage">
+<div id="bg"></div><div id="beam"></div>
+<div class="hair" id="hl"></div><div class="hair" id="hr"></div><div class="hair" id="vl"></div><div class="hair" id="vr"></div>
+<div id="gleam"></div><div class="corner" id="c1" data-copy="cornerL"></div><div class="corner" id="c2" data-copy="cornerR"></div>
+<div id="floor"></div>
+<div id="slabwrap"><div class="slab">
+  <div class="slab-label"><div class="l1" data-copy="caseEyebrow"></div><div class="l2" data-copy="caseTitle"></div><div class="grade" data-copy="caseNumber"></div></div>
+  <!-- HERO ART: drop in your own image with style="--art:url(assets/hero.png)" on .art -->
+  <div class="slab-window"><div class="card"><div class="art"></div><div class="name" data-copy="cardName"></div><div class="meta"></div></div></div>
+  <div class="glare"></div></div></div>
+<div class="cap" id="capA" data-copy="captionA"></div>
+<div class="cap" id="capB" data-copy="captionB"></div>
+<div id="rule"></div>
+<div class="sub" id="subA" data-copy="subA"></div>
+<div class="sub" id="subB" data-copy="subB"></div>
+<div class="grain"></div><div class="vignette"></div>
+</div>
+<script>
+// COPY: cornerL/cornerR = tiny frame labels, caseEyebrow/caseTitle/caseNumber = showcase case label, cardName = name on the card,
+// captionA/subA = first caption beat, captionB/subB = second caption beat.
+const COPY = K.copy({
+  cornerL:'LUMEN · STUDIO', cornerR:'NO. 0001',
+  caseEyebrow:'LUMEN · NO. 0001', caseTitle:'SHOWCASE', caseNumber:'01', cardName:'Lumen Wisp',
+  captionA:'The Showcase', subA:'Lumen Studio',
+  captionB:'Ideas, in motion', subB:'Make it move',
+});
+K.fill(COPY);
+window.DUR=6; window.POSTER=1.8;
+const {seg,lerp,premium,inOutSine,$,css,smoother}=K;
+const slab=$('#slabwrap .slab');
+// Velvet Standard: calm, sine in/out, long holds, nothing snaps. Every move < 3% scale.
+function caption(el,sub,t,a,b){ // in over 1.0s, out over 0.7s (exit ~70% of entrance)
+  const i=premium(seg(t,a,a+1.0)), o=premium(seg(t,b-0.7,b));
+  const v=i*(1-o);
+  css(el,{opacity:v,letterSpacing:lerp(.62,.34,i)+lerp(0,.06,o)+'em',filter:`blur(${(1-v)*6}px)`});
+  css(sub,{opacity:v*.95,transform:`translateY(${(1-i)*10}px)`});
+}
+window.frame=function(t){
+  t=((t%DUR)+DUR)%DUR;
+  const ph=2*Math.PI*t/DUR;
+  // showcase case: slow sway in 3D (loop-safe), gentle breathing scale 0.985..1.0
+  const ry=Math.sin(ph)*9, rx=Math.sin(ph*2)*1.5;
+  css(slab,{transform:`rotateY(${ry}deg) rotateX(${rx}deg) scale(${.9925+.0075*Math.cos(ph)})`,'--g':(((t/DUR)*1.6)%1.6-.3).toFixed(3)});
+  css('#floor',{transform:`scaleX(${1-Math.abs(ry)/60})`,opacity:.8});
+  css('#beam',{transform:`translateX(${Math.sin(ph)*60}px)`});
+  // hairlines breathe (draw in a hair, never vanish)
+  const h=1; // frame stays joined at the corners; light travels instead
+  css('#hl',{transform:`scaleX(${h})`}); css('#hr',{transform:`scaleX(${h})`});
+  css('#vl',{transform:`scaleY(${h})`}); css('#vr',{transform:`scaleY(${h})`});
+  // two captions, crossing with a gap (outgoing leaves before incoming arrives)
+  // A: visible 0..2.9 (in -0.2 loop wrap), B: 3.0..5.9
+  const tA = t>5.85 ? t-DUR : t; // wrap so A enters before loop point
+  caption($('#capA'),$('#subA'),tA,-0.15,2.85);
+  caption($('#capB'),$('#subB'),t,2.9,5.8);
+  const r=inOutSine((Math.sin(ph*2-1.2)+1)/2);
+  css('#gleam',{transform:`translateX(${(t/DUR)*1120-220}px)`,opacity:.9});
+  css('#rule',{transform:`scaleX(${.4+.6*r})`});
+};
+frame(0);
+</script></body></html>

@@ -1,0 +1,135 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link rel="stylesheet" href="../kit.css"><script src="../kit.js"></script>
+<style>
+#cam{position:absolute;left:0;top:0;width:1080px;height:1350px;transform-origin:0 0}
+.lvl{position:absolute;left:0;top:0;width:1080px;height:1350px;transform-origin:0 0}
+/* ---- hub level (the destination scene seen through the pass's hole) ---- */
+.vbg{position:absolute;left:-60%;top:-60%;width:220%;height:220%;
+  background:radial-gradient(30% 26% at 50% 38%,color-mix(in srgb,var(--primary-lo) 60%,var(--bg3)) 0%,color-mix(in srgb,var(--bg3) 65%,var(--bg2)) 40%,color-mix(in srgb,var(--bg) 60%,var(--bg2)) 75%,color-mix(in srgb,var(--bg) 80%,rgb(var(--deep-rgb))) 100%)}
+.vfx{position:absolute;inset:0}
+.vglow{position:absolute;left:140px;top:110px;width:800px;height:720px;border-radius:50%;
+  background:radial-gradient(closest-side,color-mix(in srgb,var(--primary-hi) 55%,transparent),rgb(var(--primary-rgb) / .15) 60%,transparent)}
+.vrail{position:absolute;left:60px;right:60px;top:752px;height:3px;background:linear-gradient(90deg,transparent,rgb(var(--accent-rgb) / .7) 25%,rgb(var(--text-rgb) / .95) 50%,rgb(var(--accent-rgb) / .7) 75%,transparent)}
+.lvl .slab{backdrop-filter:none}
+.veb{position:absolute;left:0;right:0;top:92px;text-align:center}
+.vcap{position:absolute;left:0;right:0;top:1218px;text-align:center;font-family:var(--sans);font-weight:600;font-size:32px;color:rgb(var(--text-rgb) / .78)}
+.vside{position:absolute;top:1000px;font-family:var(--display);font-weight:900;font-size:120px;line-height:.84;text-transform:uppercase;color:var(--text)}
+/* ---- pass level (the ticket-style token with a punched hole) ---- */
+.tk{position:absolute;left:190px;top:145px;width:700px;height:1060px;border-radius:40px;background:var(--text);overflow:hidden;color:var(--bg);
+  -webkit-mask:radial-gradient(circle 34px at 0 700px,transparent 98%,#000) left/51% 100% no-repeat,radial-gradient(circle 34px at 100% 700px,transparent 98%,#000) right/51% 100% no-repeat;
+  box-shadow:0 50px 90px rgba(0,0,0,.45)}
+.tk .eb{position:absolute;left:0;right:0;top:62px;text-align:center;font-family:var(--mono);font-weight:700;font-size:22px;letter-spacing:.22em;color:var(--primary-lo)}
+.tk .h{position:absolute;left:0;right:0;top:104px;text-align:center;font-family:var(--display);font-weight:900;font-size:138px;line-height:.84;text-transform:uppercase}
+.tk .h b{color:var(--primary)}
+.tk .perf{position:absolute;left:50px;right:50px;top:698px;border-top:4px dashed rgb(var(--bg-rgb) / .28)}
+.tk .l1{position:absolute;left:0;right:0;top:736px;text-align:center;font-family:var(--sans);font-weight:700;font-size:36px}
+.tk .l2{position:absolute;left:0;right:0;top:792px;text-align:center;font-family:var(--mono);font-weight:700;font-size:20px;letter-spacing:.2em;color:rgb(var(--bg-rgb) / .6)}
+.tk .stub{position:absolute;left:0;right:0;bottom:0;height:200px;background:var(--primary);display:flex;align-items:center;justify-content:center;gap:28px;color:var(--text)}
+.tk .stub .w{font-family:var(--display);font-weight:900;font-size:76px;line-height:.9;text-transform:uppercase}
+.tk .foilband{position:absolute;left:0;right:0;bottom:200px;height:12px;background:var(--foil);background-size:220% 100%}
+.hole{position:absolute;left:430px;top:530px;width:220px;height:220px;border-radius:50%;overflow:hidden;background:color-mix(in srgb,var(--bg) 60%,var(--bg2))}
+.hole .inner{position:absolute;left:-430px;top:-530px;width:1080px;height:1350px}
+.ring{position:absolute;left:418px;top:518px;width:244px;height:244px;border-radius:50%;
+  background:conic-gradient(from 20deg,var(--accent),var(--soft),var(--pop),var(--warm),var(--accent));
+  -webkit-mask:radial-gradient(circle,transparent 109px,#000 110px);box-shadow:0 0 30px rgb(var(--primary-rgb) / .5)}
+#stage{--soft:color-mix(in srgb,var(--primary-hi) 62%,var(--text))}  /* light tint of --primary-hi used in the ring */
+.hshade{position:absolute;left:430px;top:530px;width:220px;height:220px;border-radius:50%;box-shadow:inset 0 10px 24px rgba(0,0,0,.55),inset 0 0 0 2px rgba(255,255,255,.35)}
+</style></head><body><div id="stage">
+<div id="cam"></div>
+<div class="grain"></div><div class="vignette"></div>
+</div>
+<script>
+window.DUR=5; window.POSTER=2.45;
+// COPY: hubEyebrow = line at top of the hub scene, sideL/sideR = big two-line words left/right (≤ 5 letters per line), hubCaption = caption under the hub,
+// caseEyebrow/caseTitle/caseNumbers/caseNames = labels on the three showcase cases, passEyebrow/passTitle/passAccent = pass header (title ≤ 7 letters per line),
+// passLine = line under the perforation, passMeta = small mono line, stubText = text in the coloured stub (2 short lines).
+const COPY = K.copy({
+  hubEyebrow:'Lumen library · Your best work', sideL:'One<br>pass.', sideR:'Every<br>tool.', hubCaption:'Every project lands in one library',
+  caseEyebrow:'LUMEN LIBRARY', caseTitle:'SHOWCASE', caseNumbers:['01','02','03'], caseNames:['Nova Fern','Lumen Wisp','Glass Owl'],
+  passEyebrow:'LUMEN · ALL ACCESS', passTitle:'Make it', passAccent:'move.', passLine:'One pass. Every tool.', passMeta:'NO. 000 001 · ALL ACCESS', stubText:'lumen<br>.app'
+});
+// ART HOOK: put image URLs here (e.g. 'assets/hero.png') to replace the generated art on the three showcase cases (left, centre, right).
+const CASE_ART=[null,null,null];
+const {seg,smoother,lerp,outExpo,inExpo,premium,inOutSine,$,$$,css,clamp}=K;
+// geometry (local 1080x1350 coords for every level)
+const C={x:540,y:640}, R=110;                 // punched hole centre/radius on the pass
+const h=R/(Math.hypot(540,675)*1.12);               // hub scale inside hole: frame corners touch the ring
+const P={x:540,y:1012}, m=0.30;              // mini pass position/scale inside the hub
+// similarity maps {k,x,y}: p -> k*p + (x,y)
+const mk=(k,x,y)=>({k,x,y});
+const comp=(A,B)=>mk(A.k*B.k,A.k*B.x+A.x,A.k*B.y+A.y);
+const inv=A=>mk(1/A.k,-A.x/A.k,-A.y/A.k);
+const S=(X,s)=>mk(s,X.x-s*X.x,X.y-s*X.y);
+const Mm=mk(m,P.x-m*C.x,P.y-m*C.y), Hm=mk(h,C.x-h*C.x,C.y-h*C.y);
+const FB={x:(P.x-m*C.x)/(1-m),y:(P.y-m*C.y)/(1-m)};   // fixed point of M
+const tr=A=>`matrix(${A.k},0,0,${A.k},${A.x},${A.y})`;
+const INF=`<svg width="150" height="80" viewBox="-100 -50 200 100"><path d="M0,0 C28,-46 86,-46 86,0 C86,46 28,46 0,0 C-28,-46 -86,-46 -86,0 C-86,46 -28,46 0,0Z" fill="none" style="stroke:var(--text)" stroke-width="17" stroke-linejoin="round"/></svg>`;
+// the stub mark (infinity loop): swap INF for your own logo SVG
+function hubHTML(simple){
+  if(simple) return `<div class="vbg"></div><div class="vglow"></div>`;
+  const sl=(x,y,s,i,dim)=>`<div class="slab" style="--s:${s};left:${x}px;top:${y}px;opacity:${dim}"><div class="slab-label"><div class="l1">${COPY.caseEyebrow} · ${COPY.caseNumbers[i]}</div><div class="l2">${COPY.caseTitle}</div><div class="grade">${COPY.caseNumbers[i]}</div></div>
+    <div class="slab-window"><div class="card" style="${i===0?'background:linear-gradient(170deg,var(--accent),var(--accent-lo))':i===2?'background:linear-gradient(170deg,var(--pop),color-mix(in srgb,var(--pop) 72%,var(--bg)))':''}"><div class="art" style="${CASE_ART[i]?`--art:url(${CASE_ART[i]})`:`filter:hue-rotate(${i*70}deg)`}"></div><div class="name" style="font-size:${34*s}px">${COPY.caseNames[i]}</div><div class="meta"></div></div></div><div class="glare"></div></div>`;
+  return `<div class="vbg"></div><div class="vfx"><div class="vglow"></div>
+    ${sl(78,250,.6,0,.85)}${sl(742,250,.6,2,.85)}${sl(368,150,.82,1,1)}
+    <div class="vrail"></div><div class="veb eyebrow">${COPY.hubEyebrow}</div>
+    <div class="vside" style="left:70px;text-align:left">${COPY.sideL}</div><div class="vside" style="right:70px;text-align:right"><span class="foiltext">${COPY.sideR}</span></div>
+    <div class="vcap">${COPY.hubCaption}</div></div>`;
+}
+function passHTML(){
+  return `<div class="tk"><div class="eb">${COPY.passEyebrow}</div><div class="h">${COPY.passTitle}<br><b>${COPY.passAccent}</b></div>
+    <div class="perf"></div><div class="l1">${COPY.passLine}</div><div class="l2">${COPY.passMeta}</div>
+    <div class="foilband"></div><div class="stub">${INF}<div class="w">${COPY.stubText}</div></div></div>
+    <div class="ring"></div><div class="hole"><div class="inner"></div></div><div class="hshade"></div>`;
+}
+// nest: hub0 > pass1 > hub2 > pass3 > hub4 > pass5 > hub6(simple)
+const levels=[]; let parent=$('#cam');
+for(let i=0;i<7;i++){
+  const isV=i%2===0, d=document.createElement('div'); d.className='lvl';
+  d.innerHTML=isV?hubHTML(i===6):passHTML();
+  if(i>0) d.style.transform=tr(isV?Hm:Mm);
+  parent.appendChild(d); levels.push(d);
+  parent=isV?d:d.querySelector('.hole .inner');
+}
+// hub level -> its child pass must sit above hub content (it already does: appended last)
+const Lh=Math.log(1/h), Lm=Math.log(1/m), L=Lh+Lm, vd=0.045;
+const easeZ=K.bezier(.55,0,.12,1);
+const keys=[[0,0],[0.75,0.75*vd],[1.95,Lh],[3.05,Lh+1.1*vd],[4.3,L-0.7*vd],[5.0,L]];
+function Zof(t){
+  for(let i=0;i<keys.length-1;i++){const [t0,z0]=keys[i],[t1,z1]=keys[i+1]; if(t<=t1){
+    const dt=t1-t0, u=(t-t0)/dt, drift=(z1-z0)<=vd*dt*1.01;
+    if(drift) return z0+(z1-z0)*u;
+    return z0+vd*(t-t0)+(z1-z0-vd*dt)*easeZ(u);}}
+  return L;
+}
+window.frame=function(t){
+  t=((t%DUR)+DUR)%DUR;
+  const Z=Zof(t);
+  const M1=inv(Mm);
+  let cam = Z<=Lh ? comp(S(C,Math.exp(Z)),M1) : comp(comp(S(FB,Math.exp(Z-Lh)),inv(Hm)),M1);
+  $('#cam').style.transform=tr(cam);
+  // screen scale of each level, used for depth-of-field and culling
+  let k=cam.k; const ks=[];
+  for(let i=0;i<levels.length;i++){ if(i>0) k*= (i%2===0?h:m); ks.push(k); }
+  const zs=(Math.abs(Zof(t+1/60)-Zof(t-1/60))*30);          // zoom speed
+  levels.forEach((el,i)=>{
+    const s=ks[i];
+    if(i%2===0){
+      const fx=el.querySelector('.vfx')||el;
+      const blur=16*smoother(seg(s,1.08,2.6))+Math.min(6,zs*2.2)*smoother(seg(s,.4,1));
+      if(fx!==el) fx.style.filter=blur>0.05?`blur(${(blur/s).toFixed(2)}px)`:'none';
+      el.querySelectorAll('.slab').forEach((sb,j)=>sb.style.setProperty('--g',(((t/DUR)+j*0.21)%1*1.5-.25).toFixed(3)));
+      const vb=el.querySelector('.vfx'); if(vb){ vb.style.opacity=s>4?0:1; const to=1-smoother(seg(s,1.15,1.7)); el.querySelectorAll('.vside,.vcap,.veb').forEach(x=>x.style.opacity=to); }
+    } else {
+      // ring blooms while we pass through it
+      const ring=el.querySelector('.ring');
+      ring.style.background=`conic-gradient(from ${20+t/DUR*360}deg,var(--accent),var(--soft),var(--pop),var(--warm),var(--accent))`;
+      el.querySelector('.foilband').style.backgroundPosition=`${t/DUR*220}% 0`;
+      // pass content softens once it is far bigger than the frame
+      const tk=el.querySelector('.tk'); const b=10*smoother(seg(s,1.6,4));
+      tk.style.filter=b>0.05?`blur(${(b/s).toFixed(2)}px)`:'none';
+    }
+    el.style.visibility = s<0.004?'hidden':'visible';
+  });
+};
+frame(0);
+</script></body></html>

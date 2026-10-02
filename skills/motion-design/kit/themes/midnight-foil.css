@@ -1,0 +1,4 @@
+/* Default theme (same as theme.css). Copy this file to make your own. */
+:root{--bg:#100D20;--bg2:#1B1638;--bg3:#2A2354;--primary:#6552C8;--primary-hi:#8B7BF0;--primary-lo:#3E3190;--accent:#8EE9EE;--accent-lo:#4FB9C4;
+--text:#F5F1E9;--text2:#E9E3D6;--warm:#F2C46B;--warm-lo:#E7A94E;--pop:#F09CC6;
+--bg-rgb:16 13 32;--deep-rgb:6 4 16;--primary-rgb:101 82 200;--accent-rgb:142 233 238;--text-rgb:245 241 233;--warm-rgb:242 196 107;--pop-rgb:240 156 198}

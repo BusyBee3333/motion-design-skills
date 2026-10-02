@@ -1,0 +1,115 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link rel="stylesheet" href="../kit.css"><script src="../kit.js"></script>
+<style>
+.chap{position:absolute;inset:0;overflow:hidden}
+#cA{background:radial-gradient(75% 55% at 50% 40%,color-mix(in srgb,var(--bg3) 85%,var(--primary-lo)) 0%,color-mix(in srgb,var(--bg2) 80%,var(--bg)) 50%,var(--bg) 85%)}
+#cB{background:radial-gradient(80% 60% at 50% 38%,var(--primary-hi) 0%,var(--primary) 45%,var(--primary-lo) 100%)}
+.cin{position:absolute;inset:0;transform-origin:540px 640px}
+.ceb{position:absolute;left:84px;top:96px;font-family:var(--mono);font-weight:700;font-size:24px;letter-spacing:.2em;text-transform:uppercase}
+.cpg{position:absolute;right:84px;top:96px;font-family:var(--mono);font-weight:700;font-size:24px;letter-spacing:.2em}
+.num{position:absolute;left:78px;top:200px;font-family:var(--display);font-weight:900;font-size:330px;line-height:.84;letter-spacing:.01em}
+.dot{position:absolute;left:470px;top:330px;width:46px;height:46px;border-radius:50%}
+.rule{position:absolute;left:84px;right:84px;top:555px;height:4px;border-radius:2px;transform-origin:0 50%}
+.word{position:absolute;left:66px;top:600px;font-family:var(--display);font-weight:900;font-size:560px;line-height:.84;letter-spacing:.005em;text-transform:uppercase;white-space:nowrap}
+.sub{position:absolute;left:84px;right:84px;top:1090px;font-family:var(--sans);font-weight:600;font-size:38px;line-height:1.25}
+.cfoot{position:absolute;left:84px;right:84px;bottom:74px;display:flex;justify-content:space-between;font-family:var(--mono);font-weight:700;font-size:22px;letter-spacing:.14em;text-transform:uppercase}
+#cA .ceb,#cA .cpg,#cA .cfoot{color:var(--accent)} #cA .word{color:var(--text)} #cA .sub{color:rgb(var(--text-rgb) / .8)}
+#cA .dot{background:var(--accent)} #cA .rule{background:rgb(var(--text-rgb) / .22)}
+#cB .ceb,#cB .cpg,#cB .cfoot{color:var(--text)} #cB .word{color:var(--text)} #cB .sub{color:var(--text)}
+#cB .num{color:var(--bg)} #cB .dot{background:var(--bg)} #cB .rule{background:rgb(var(--bg-rgb) / .35)}
+#tiles{position:absolute;inset:0;z-index:5}
+.tile{position:absolute;width:135px;height:135px;transform-origin:50% 50%}
+.tile.foil{background-image:var(--foil);background-size:1080px 1350px}
+.tile.vio{background:color-mix(in srgb,var(--primary) 75%,var(--primary-lo))}
+.tile.ink{background:var(--bg2);box-shadow:inset 0 0 0 1px rgb(var(--accent-rgb) / .18)}
+.tile.ice{background:var(--accent)}
+</style></head><body><div id="stage">
+<div class="chap" id="cA"><div class="cin">
+  <div class="ceb" data-copy="chapterLabel"></div><div class="cpg" data-copy="pageA"></div>
+  <div class="num foiltext" data-copy="numA"></div><div class="dot"></div><div class="rule"></div>
+  <div class="word" data-copy="wordA"></div>
+  <div class="sub" data-copy="subA"></div>
+  <div class="cfoot"><span data-copy="footL"></span><span data-copy="footR"></span></div>
+</div></div>
+<div class="chap" id="cB"><div class="cin">
+  <div class="ceb" data-copy="chapterLabel"></div><div class="cpg" data-copy="pageB"></div>
+  <div class="num" data-copy="numB"></div><div class="dot"></div><div class="rule"></div>
+  <div class="word" style="font-size:452px;top:640px" data-copy="wordB"></div>
+  <div class="sub" data-copy="subB"></div>
+  <div class="cfoot"><span data-copy="footL"></span><span data-copy="footR"></span></div>
+</div></div>
+<div id="tiles"></div>
+<div class="grain" style="z-index:6"></div><div class="vignette" style="opacity:.7;z-index:6"></div>
+</div>
+<script>
+// COPY: chapterLabel = top-left label (both chapters), pageA/pageB = top-right page count, numA/numB = big chapter number,
+// wordA/wordB = giant chapter word (1 short word; shrinks to fit if needed), subA/subB = 2-line sub (<br> allowed), footL/footR = footer.
+const COPY = K.copy({
+  chapterLabel:'Lumen · Chapter', footL:'Lumen', footR:'From draft to done.',
+  pageA:'01 / 02', numA:'01', wordA:'Plan', subA:'Sketch the idea.<br>Every frame starts here.',
+  pageB:'02 / 02', numB:'02', wordB:'Ship', subB:'Polish and export,<br>then share it anywhere.',
+});
+K.fill(COPY);
+// giant chapter words keep their designed size unless the copy is too wide for the 948 px column
+const WORDS=[...document.querySelectorAll('.word')].map(el=>({el,base:parseFloat(getComputedStyle(el).fontSize)}));
+function fitWords(){WORDS.forEach(w=>{w.el.style.fontSize=w.base+'px'; const wd=w.el.offsetWidth; if(wd>948) w.el.style.fontSize=(w.base*948/wd).toFixed(1)+'px';});}
+window.DUR=5; window.POSTER=0.7;
+const {seg,smoother,lerp,outExpo,inExpo,premium,inOutSine,emph,accel,$,$$,css,hash,clamp}=K;
+const COLS=8, ROWS=10, T=135;
+const tiles=[];
+for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
+  const h=hash(c*7+3,r*13+5), d=document.createElement('div');
+  const type=h<0.34?'foil':h<0.78?'ink':'vio';
+  d.className='tile '+type; d.style.left=c*T+'px'; d.style.top=r*T+'px';
+  if(type==='foil') d.style.backgroundPosition=`${-c*T}px ${-r*T}px`;
+  $('#tiles').appendChild(d); tiles.push({el:d,c,r,type});
+}
+// wipe timing per tile: diagonal cascade (rhythm), tile in -> covers -> card flips under it -> tile out
+const STEP=0.032, TIN=0.30, HOLD=0.14, TOUT=0.21;
+const W1=1.0, W2=3.5;  // wipe A->B starts top-left, wipe B->A starts bottom-right
+function tileState(t,w0,order){
+  const a=w0+order*STEP, u=t-a;
+  if(u<0) return {s:0,flipped:false};
+  if(u<TIN) return {s:outExpo(u/TIN),flipped:false};
+  if(u<TIN+HOLD) return {s:1,flipped:true};
+  if(u<TIN+HOLD+TOUT) return {s:1-inExpo((u-TIN-HOLD)/TOUT),flipped:true};
+  return {s:0,flipped:true};
+}
+const sq=(c,r)=>`M${c*T} ${r*T}h${T}v${T}h${-T}z`;
+const cA=$('#cA'), cB=$('#cB');
+function cardMotion(card,since,len){
+  // slow drift push and a light staggered settle of the card parts after a wipe
+  const inn=card.querySelector('.cin');
+  css(inn,{transform:`scale(${1+0.04*seg(since,0,len)})`});
+  const parts=[card.querySelector('.num'),card.querySelector('.dot'),card.querySelector('.word'),card.querySelector('.sub')];
+  parts.forEach((p,i)=>{const u=outExpo(seg(since,0.25+i*0.06,0.95+i*0.06)); css(p,{transform:`translateY(${(1-u)*36}px)`});});
+  const ru=outExpo(seg(since,0.3,1.0)); css(card.querySelector('.rule'),{transform:`scaleX(${ru})`});
+}
+window.frame=function(t){
+  t=((t%DUR)+DUR)%DUR;
+  fitWords();
+  // which wipe is active (or last)?
+  const inW1=t>=W1&&t<W2;   // after wipe1 started: B is the incoming card
+  const w0=inW1?W1:W2;
+  const tt=(t<W1)?t+DUR:t;  // before W1 we are still in the tail of wipe2 (wrap)
+  let path='';
+  tiles.forEach(o=>{
+    const order=inW1?(o.c+o.r):((COLS-1-o.c)+(ROWS-1-o.r));
+    const st=tileState(inW1?t:tt,w0,order);
+    if(st.flipped) path+=sq(o.c,o.r);
+    const s=st.s;
+    css(o.el,{transform:`scale(${(s*1.012).toFixed(4)})`,borderRadius:`${((1-s)*22).toFixed(1)}%`,display:s>0.001?'block':'none'});
+    if(o.type==='foil') o.el.style.backgroundImage=`linear-gradient(${105+30*Math.sin(2*Math.PI*t/DUR)}deg,var(--accent) 0%,color-mix(in srgb,var(--primary-hi) 62%,white) 26%,var(--pop) 50%,var(--warm) 74%,var(--accent) 100%)`;
+  });
+  // incoming card sits on top, clipped to the cells whose tile has already covered them
+  const inc=inW1?cB:cA, outc=inW1?cA:cB;
+  inc.style.zIndex=2; outc.style.zIndex=1;
+  inc.style.clipPath=path?`path('${path}')`:'inset(100% 0 0 0)';
+  outc.style.clipPath='none';
+  // per-card motion clocks (seamless over the wrap)
+  cardMotion(cB,t-W1-0.3,W2+1.2-W1);
+  cardMotion(cA,((t-W2-0.3)+DUR)%DUR,DUR-(W2-W1)+1.2);
+  $('#cA .num').style.backgroundPosition=`${(t/DUR)*220}% 0`;
+};
+frame(0);
+</script></body></html>

@@ -1,0 +1,140 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link rel="stylesheet" href="../kit.css"><script src="../kit.js"></script>
+<style>
+#bg{position:absolute;inset:0;background:
+  radial-gradient(60% 38% at 50% 0%,color-mix(in srgb,var(--primary-hi) 30%,transparent),transparent 70%),
+  radial-gradient(80% 55% at 50% 40%,color-mix(in srgb,var(--bg2) 65%,var(--bg3)) 0%,color-mix(in srgb,var(--bg) 60%,var(--bg2)) 55%,var(--bg) 100%)}
+/* floor: soft horizon band + falloff */
+#floor{position:absolute;left:0;right:0;top:880px;bottom:0;
+  background:linear-gradient(180deg,rgb(var(--bg-rgb) / 0) 0%,color-mix(in srgb,var(--bg3) 35%,transparent) 18%,rgb(var(--bg-rgb) / 0) 75%)}
+#horizon{position:absolute;left:0;right:0;top:900px;height:300px;
+  background:radial-gradient(60% 50% at 50% 50%,rgb(var(--primary-rgb) / .16),transparent 70%)}
+#softbox{position:absolute;left:190px;width:700px;top:-120px;height:420px;border-radius:50%;
+  background:radial-gradient(closest-side,rgb(var(--text-rgb) / .10),transparent);filter:blur(10px)}
+#rim{position:absolute;left:240px;top:200px;width:600px;height:820px;border-radius:50%;
+  background:radial-gradient(closest-side,rgb(var(--primary-rgb) / .55),rgb(var(--primary-rgb) / 0));filter:blur(40px)}
+#contact{position:absolute;left:290px;top:1000px;width:500px;height:50px;border-radius:50%;
+  background:radial-gradient(closest-side,rgba(0,0,0,.75),transparent);filter:blur(6px)}
+.scene{position:absolute;inset:0;perspective:2400px;perspective-origin:540px 470px}
+#main{bottom:auto;height:1026px;-webkit-box-reflect:below 0px linear-gradient(180deg,transparent 72%,rgba(255,255,255,.10) 88%,rgba(255,255,255,.36) 100%)}
+.reflX .face{backface-visibility:visible!important;-webkit-backface-visibility:visible!important}
+.refl{opacity:.34;filter:blur(2.5px);
+  -webkit-mask:linear-gradient(180deg,transparent 0,transparent 1015px,#000 1032px,rgba(0,0,0,.35) 1180px,transparent 1330px);
+  mask:linear-gradient(180deg,transparent 0,transparent 1015px,#000 1032px,rgba(0,0,0,.35) 1180px,transparent 1330px)}
+.side{position:absolute;--tint:color-mix(in srgb,color-mix(in srgb,var(--text) 55%,var(--primary-hi)) 30%,transparent);background:linear-gradient(90deg,rgba(255,255,255,.65),var(--tint) 22%,rgb(var(--accent-rgb) / .22) 60%,rgba(255,255,255,.55));opacity:var(--ea,.7)}
+.side.h{background:linear-gradient(180deg,rgba(255,255,255,.65),var(--tint) 22%,rgb(var(--accent-rgb) / .22) 60%,rgba(255,255,255,.55))}
+/* the 3D showcase case */
+.s3{position:absolute;left:540px;top:606px;width:0;height:0;transform-style:preserve-3d}
+.face{position:absolute;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.face.slab{backdrop-filter:none;box-shadow:inset 0 0 0 calc(2px*var(--s)) rgba(255,255,255,.62),inset 0 0 0 calc(10px*var(--s)) rgba(255,255,255,.07)}
+.ring{position:absolute;border-style:solid;border-color:var(--edge,color-mix(in srgb,color-mix(in srgb,var(--accent) 22%,#ccc) 50%,transparent));box-sizing:border-box}
+.shade{position:absolute;inset:0;pointer-events:none;border-radius:inherit}
+.spec{position:absolute;inset:0;pointer-events:none;border-radius:inherit;mix-blend-mode:screen}
+.foilsheen{position:absolute;inset:0;mix-blend-mode:color-dodge;opacity:.0;
+  background:linear-gradient(115deg,transparent 20%,var(--accent) 34%,var(--primary-hi) 42%,var(--pop) 50%,var(--warm) 58%,transparent 72%);background-size:300% 100%}
+/* back of the slab */
+.back .slab-label{background:var(--text2)}
+.back .bl1{font-family:var(--mono);font-weight:700;font-size:calc(15px*var(--s));letter-spacing:.14em;color:var(--primary-lo)}
+.back .bars{position:absolute;right:7%;top:22%;bottom:22%;width:34%;
+  background:repeating-linear-gradient(90deg,var(--bg) 0 3px,transparent 3px 5px,var(--bg) 5px 6px,transparent 6px 10px,var(--bg) 10px 14px,transparent 14px 16px)}
+.cardback{position:relative;width:86%;height:92%;border-radius:calc(14px*var(--s));overflow:hidden;
+  background:radial-gradient(circle at 50% 50%,var(--primary-hi) 0 8%,transparent 8.5%),
+    repeating-radial-gradient(circle at 50% 50%,var(--primary-lo) 0 14px,color-mix(in srgb,var(--primary-lo) 70%,var(--primary)) 14px 28px);
+  box-shadow:inset 0 0 0 calc(12px*var(--s)) var(--bg3)}
+.cardback:after{content:attr(data-mark);position:absolute;left:0;right:0;top:46%;text-align:center;font-family:var(--display);font-weight:900;
+  font-size:calc(46px*var(--s));letter-spacing:.06em;color:var(--text);transform:translateY(-50%)}
+#eb{position:absolute;left:0;right:0;top:62px;text-align:center}
+#foot{position:absolute;left:0;right:0;top:1250px;text-align:center;font-family:var(--mono);font-weight:500;font-size:22px;letter-spacing:.2em;color:rgb(var(--text-rgb) / .42)}
+</style></head><body><div id="stage">
+<div id="bg"></div><div id="softbox"></div><div id="floor"></div><div id="horizon"></div><div id="rim"></div>
+<div id="contact"></div>
+<div class="scene" id="main"></div>
+<div id="eb" class="eyebrow" data-copy="eyebrow"></div>
+<div id="foot" data-copy="footer"></div>
+<div class="grain"></div><div class="vignette"></div>
+</div>
+<script>
+window.DUR=6; window.POSTER=5.3;
+const {seg,smoother,lerp,clamp,outExpo,inExpo,$,$$,css}=K;
+// COPY: eyebrow = top label; footer = bottom mono line; caseEyebrow/caseTitle/caseNumber = front label of the showcase case;
+// cardName = name on the card (≤ 12 chars); backEyebrow/backTitle = back label (title ≤ 12 chars); backMark = word on the card back (≤ 6 chars)
+const COPY = K.copy({
+  eyebrow:'Lumen · Showcase', footer:'MADE WITH LUMEN',
+  caseEyebrow:'LUMEN · NO. 0001', caseTitle:'SHOWCASE', caseNumber:'01', cardName:'Lumen Wisp',
+  backEyebrow:'SERIAL 0001', backTitle:'MADE TO LAST', backMark:'LUMEN'
+});
+K.fill(COPY);
+// Swap the hero art: set an image URL here (product shot, screenshot, illustration). Empty = generated theme art.
+const HERO_IMG='';
+const S=1.18, W=420*S, H=700*S, D=30*S, NR=22, R=26*S, F=H/2+2;
+function slab3d(){
+  const r=document.createElement('div'); r.className='s3';
+  let h='';
+  for(let i=1;i<NR;i++){const z=-D/2+i*D/NR; h+=`<div class="ring" style="left:${-W/2}px;top:${-H/2}px;width:${W}px;height:${H}px;border-radius:${26*S}px;border-width:${3.2*S}px;transform:translateZ(${z}px)"></div>`;}
+  h+=`<div class="side" style="left:${-D/2}px;top:${-(H-2*R)/2}px;width:${D}px;height:${H-2*R}px;transform:rotateY(90deg) translateZ(${W/2-1}px)"></div>
+  <div class="side" style="left:${-D/2}px;top:${-(H-2*R)/2}px;width:${D}px;height:${H-2*R}px;transform:rotateY(-90deg) translateZ(${W/2-1}px)"></div>
+  <div class="side h" style="left:${-(W-2*R)/2}px;top:${-D/2}px;width:${W-2*R}px;height:${D}px;transform:rotateX(90deg) translateZ(${H/2-1}px)"></div>
+  <div class="side h" style="left:${-(W-2*R)/2}px;top:${-D/2}px;width:${W-2*R}px;height:${D}px;transform:rotateX(-90deg) translateZ(${H/2-1}px)"></div>`;
+  h+=`<div class="face slab front" style="--s:${S};left:${-W/2}px;top:${-H/2}px;transform:translateZ(${D/2}px)">
+    <div class="slab-label"><div class="l1">${COPY.caseEyebrow}</div><div class="l2">${COPY.caseTitle}</div><div class="grade"><span>${COPY.caseNumber}</span></div></div>
+    <div class="slab-window"><div class="card"><div class="art"${HERO_IMG?` style="--art:url(${HERO_IMG})"`:''}></div><div class="foilsheen"></div><div class="name">${COPY.cardName}</div><div class="meta"></div></div></div>
+    <div class="shade"></div><div class="glare"></div><div class="spec"></div></div>`;
+  h+=`<div class="face slab back" style="--s:${S};left:${-W/2}px;top:${-H/2}px;transform:rotateY(180deg) translateZ(${D/2}px)">
+    <div class="slab-label"><div class="bl1">${COPY.backEyebrow}</div><div class="l2" style="font-size:${30*S}px">${COPY.backTitle}</div><div class="bars"></div></div>
+    <div class="slab-window"><div class="cardback" data-mark="${COPY.backMark}"></div></div>
+    <div class="shade"></div><div class="glare"></div><div class="spec"></div></div>`;
+  r.innerHTML=h; return r;
+}
+$('#main').appendChild(slab3d());
+const roots=[$('#main .s3')];
+
+// monotone cubic (Fritsch-Carlson) over periodic keyframes -> fast mid-turn, soft landings, no overshoot
+function monoLoop(keys,P){
+  const k=[...keys.slice(-3).map(([t,v])=>[t-P,v-360]),...keys,...keys.slice(0,3).map(([t,v])=>[t+P,v+360])];
+  const n=k.length,d=[],m=[];
+  for(let i=0;i<n-1;i++)d[i]=(k[i+1][1]-k[i][1])/(k[i+1][0]-k[i][0]);
+  m[0]=d[0];m[n-1]=d[n-2];
+  for(let i=1;i<n-1;i++)m[i]=d[i-1]*d[i]<=0?0:(d[i-1]+d[i])/2;
+  for(let i=0;i<n-1;i++){if(d[i]===0){m[i]=m[i+1]=0;continue;}const a=m[i]/d[i],b=m[i+1]/d[i],s=a*a+b*b;if(s>9){const tt=3/Math.sqrt(s);m[i]=tt*a*d[i];m[i+1]=tt*b*d[i];}}
+  return t=>{let i=0;while(i<n-2&&t>k[i+1][0])i++;const h=k[i+1][0]-k[i][0],u=(t-k[i][0])/h,u2=u*u,u3=u2*u;
+    return (2*u3-3*u2+1)*k[i][1]+(u3-2*u2+u)*h*m[i]+(-2*u3+3*u2)*k[i+1][1]+(u3-u2)*h*m[i+1];};
+}
+// rotY keyframes: slow drift on the hero angle, fast turn, soft landing on the back, fast turn home
+const rotY=monoLoop([[0,-24],[1.05,-16],[1.45,18],[1.8,118],[2.25,156],[3.05,166],[3.45,200],[3.82,300],[4.3,330],[6,336]].slice(0,-1),6);
+// note: last key (6,336) is supplied by the periodic wrap of (0,-24)
+
+window.frame=function(t){
+  t=((t%DUR)+DUR)%DUR;
+  const ry=rotY(t), ph=2*Math.PI*t/DUR;
+  const rx=4+1.2*Math.sin(ph), rz=-1.2+0.8*Math.sin(ph+1);
+  const bob=-4-4*Math.sin(ph);
+  const tr=`translateY(${bob}px) rotateX(${rx}deg) rotateY(${ry}deg) rotateZ(${rz}deg)`;
+  // lighting from angle: key light front-left
+  const a=ry*Math.PI/180;
+  const front=Math.cos(a+0.45), back=Math.cos(a+Math.PI-0.45);
+  const sideness=Math.abs(Math.sin(a));
+  const edgeA=(.32+.5*sideness).toFixed(3), edgeL=Math.round(170+70*sideness);
+  roots.forEach((r,ri)=>{r.style.transform=ri?`translateY(${F}px) scaleY(-1) translateY(${-F}px) `+tr:tr; r.style.setProperty('--ea',(.45+.5*sideness).toFixed(3)); r.style.setProperty('--edge',`color-mix(in srgb,color-mix(in srgb,var(--accent) 22%,rgb(${edgeL+8} ${edgeL+8} ${edgeL+8})) ${(edgeA*100).toFixed(1)}%,transparent)`);
+    const [f,b]=r.querySelectorAll('.face');
+    if(ri){f.style.visibility=Math.cos(a)>0?'visible':'hidden'; b.style.visibility=Math.cos(a)>0?'hidden':'visible';}
+    const sh=(x)=>`linear-gradient(${90}deg,rgb(var(--deep-rgb) / ${(.55*(1-clamp(x))).toFixed(3)}),rgb(var(--deep-rgb) / ${(.25+.45*(1-clamp(x))).toFixed(3)}))`;
+    f.querySelector('.shade').style.background=sh(front);
+    b.querySelector('.shade').style.background=sh(back);
+    // glare position is a pure function of the angle: sweeps as it turns, never pops
+    const gF=clamp((Math.sin(a)+0.15)*0.9+0.45,-0.4,1.4), gB=clamp((-Math.sin(a)+0.15)*0.9+0.45,-0.4,1.4);
+    f.style.setProperty('--g',gF.toFixed(3)); b.style.setProperty('--g',gB.toFixed(3));
+    // broad specular wash (softbox) strongest near a 25deg grazing angle
+    const spF=Math.exp(-Math.pow((ry+60)%360/40-0.0,2)), wash=x=>`radial-gradient(120% 60% at ${50+60*Math.sin(a)}% 0%,rgba(255,255,255,${x}),transparent 60%)`;
+    f.querySelector('.spec').style.background=wash((.16*clamp(front)).toFixed(3));
+    b.querySelector('.spec').style.background=wash((.16*clamp(back)).toFixed(3));
+    // foil sheen on card art tied to angle
+    const fs=f.querySelector('.foilsheen'); fs.style.backgroundPosition=`${(50+Math.sin(a)*160).toFixed(1)}% 0`; fs.style.opacity=(.55*clamp(front*1.3)).toFixed(3);
+    f.querySelector('.grade').style.backgroundPosition=`${(50+Math.sin(a)*120).toFixed(1)}% 0`;
+  });
+  // contact shadow narrows as the slab turns edge-on
+  const cw=lerp(170,500,Math.abs(Math.cos(a)));
+  css('#contact',{width:cw+'px',left:(540-cw/2)+'px',opacity:(.75+.25*Math.abs(Math.cos(a))).toFixed(3)});
+  css('#rim',{opacity:(.8+.2*Math.sin(ph)).toFixed(3),transform:`translateX(${-Math.sin(a)*60}px)`});
+};
+frame(0);
+</script></body></html>

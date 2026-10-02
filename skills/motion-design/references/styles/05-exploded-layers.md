@@ -1,0 +1,9 @@
+# 05 Exploded Layers
+**Feeling:** technical, precise, credible, premium
+**Good for:** product anatomy, "what's inside", explaining 3-4 parts of one thing
+**Avoid when:** the object has no meaningful layers, or labels would need more than a few words
+**Mechanism:** five flat layers (front clear shell, title label, card, inner frame, back shell) in one preserve-3d rig tilted rotateX 16° / rotateY -42°; separation is translateZ along the case normal, so it reads as a diagonal tilted axis. Each layer uses K.smoother with 60 ms stagger (front leaves first, back returns first). The rig slides from centre to left as it opens to make room for the callout column. Leader lines are SVG paths from live anchor points (getBoundingClientRect of anchor dots inside each 3D layer) to an evenly spaced label column; lines draw on via pathLength dash, then labels slide in.
+**Timing:** combined 0-0.45 s, explode 0.45-1.85 s, breathing separation ±6% (2.4 s period), callouts in 1.4-2.6 s (80 ms stagger), out 3.95-4.5 s (fast inExpo), recombine 4.25-5.6 s, combined hold to loop. DUR 6 s, POSTER 3.0 s.
+**Swap points:** COPY `callouts` (4 labels, ≤ 16 chars, order label/case/card/inner), `eyebrow`, `headline` (≤ 18 chars), `caseEyebrow`, `caseTitle`, `caseNumber`, `cardName`. Art: `HERO_IMG` constant. Theme roles: `--accent` (leader lines, dots, inner frame, grid), `--primary` (glow, back shell), foil for the headline.
+**Adapting:** Swap the layer HTML in `L` for your own product's parts (keep 3-5 layers) and move each `anc` to the point the callout should touch. For 16:9, keep the rig left and widen the callout column. In a longer edit, hold the exploded state (1.9-3.9 s) as long as the voiceover needs.
+**Credits:** Work Louder exploded product films (physical layers, gentle breathing separation, technical callouts), via motion-video-kit.

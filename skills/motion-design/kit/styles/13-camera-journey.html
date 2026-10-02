@@ -1,0 +1,124 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link rel="stylesheet" href="../kit.css"><script src="../kit.js"></script>
+<style>
+#bg{position:absolute;inset:0;background:radial-gradient(90% 70% at 50% 45%,color-mix(in srgb,var(--bg2) 90%,var(--bg3)) 0%,color-mix(in srgb,var(--bg) 55%,var(--bg2)) 60%,var(--bg) 100%)}
+#dots{position:absolute;left:-2000px;top:-2000px;width:6000px;height:6000px;opacity:.55;
+  background-image:radial-gradient(circle,rgb(var(--accent-rgb) / .22) 1.6px,transparent 2px);background-size:64px 64px}
+#world{position:absolute;left:0;top:0;width:0;height:0;transform-origin:0 0}
+#rail{position:absolute;left:0;top:0;overflow:visible}
+.stn{position:absolute;width:600px;height:780px;margin-left:-300px;margin-top:-390px;border-radius:40px;overflow:hidden;
+  background:linear-gradient(172deg,color-mix(in srgb,var(--bg3) 95%,var(--primary-lo)) 0%,color-mix(in srgb,var(--bg2) 75%,var(--bg3)) 55%,color-mix(in srgb,var(--bg2) 80%,var(--bg)) 100%);
+  box-shadow:inset 0 0 0 2px rgb(var(--text-rgb) / .14),inset 0 2px 0 rgba(255,255,255,.16),0 40px 90px rgba(0,0,0,.5)}
+.stn .hl{position:absolute;inset:0;border-radius:inherit;box-shadow:inset 0 0 0 3px var(--accent),0 0 0 0 transparent;opacity:0}
+.stn .top{position:absolute;left:44px;right:44px;top:40px;display:flex;justify-content:space-between;font-family:var(--mono);font-weight:700;font-size:22px;letter-spacing:.2em;color:var(--accent)}
+.stn .top b{color:rgb(var(--text-rgb) / .45);font-weight:500}
+.stn .vis{position:absolute;left:44px;right:44px;top:96px;height:380px;border-radius:26px;background:rgb(var(--deep-rgb) / .45);box-shadow:inset 0 0 0 2px rgb(var(--text-rgb) / .07);overflow:hidden}
+.stn .ttl{position:absolute;left:44px;top:504px;font-size:132px}
+.stn .sub{position:absolute;left:46px;right:40px;top:648px;font-family:var(--sans);font-weight:600;font-size:30px;line-height:1.2;color:rgb(var(--text-rgb) / .8)}
+.node{position:absolute;width:30px;height:30px;margin:-15px 0 0 -15px;border-radius:50%;background:var(--bg);box-shadow:inset 0 0 0 4px var(--accent),0 0 24px rgb(var(--accent-rgb) / .6)}
+#eb{position:absolute;left:0;right:0;top:64px;text-align:center}
+#hud{position:absolute;left:0;right:0;top:1244px;display:flex;justify-content:center;gap:16px}
+#hud span{font-family:var(--mono);font-weight:700;font-size:22px;letter-spacing:.16em;color:rgb(var(--text-rgb) / .35);padding:8px 14px;border-radius:999px}
+</style></head><body><div id="stage">
+<div id="bg"></div><div id="dots"></div>
+<div id="world"><svg id="rail" width="10" height="10"></svg></div>
+<div id="eb" class="eyebrow" data-copy="eyebrow"></div>
+<div id="hud"><span></span><span></span><span></span><span></span></div>
+<div class="grain"></div><div class="vignette"></div>
+</div>
+<script>
+window.DUR=6; window.POSTER=1.6;
+// COPY: eyebrow = top line; stations = 4 stops, each {k: title + HUD chip (≤ 6 letters), tag: small top-right label, sub: line under the title (≤ 36 chars)};
+// passEyebrow/passTitle/passNumber = the pass on stop 1, chip = chip under it; caseEyebrow/caseTitle/caseNumber/caseName = showcase cases on stops 2 and 4; dial = word in the dial on stop 3.
+const COPY = K.copy({
+  eyebrow:'Lumen',
+  stations:[
+    {k:'Start', tag:'Your pass', sub:'One pass unlocks every tool.'},
+    {k:'Build', tag:'Showcase', sub:'Keep your best work in one place.'},
+    {k:'Tune',  tag:'Every frame', sub:'Dial in timing on one timeline.'},
+    {k:'Ship',  tag:'Approved', sub:'Export and share when it is ready.'}],
+  passEyebrow:'LUMEN · NO. 0001', passTitle:'All<br>Access', passNumber:'01', chip:'Library',
+  caseEyebrow:'LUMEN LIBRARY', caseTitle:'SHOWCASE', caseNumber:'01', caseName:'Lumen Wisp', dial:'TUNE'
+});
+K.fill(COPY);
+// ART HOOK: set to an image URL (e.g. 'assets/hero.png') to replace the generated card art in both showcase cases.
+const HERO_IMG=null;
+const ART=`<div class="art"${HERO_IMG?` style="--art:url(${HERO_IMG})"`:''}></div>`;
+const CASE=`<div class="slab-label"><div class="l1">${COPY.caseEyebrow}</div><div class="l2">${COPY.caseTitle}</div><div class="grade">${COPY.caseNumber}</div></div>
+   <div class="slab-window"><div class="card">${ART}<div class="name">${COPY.caseName}</div><div class="meta"></div></div></div>`;
+const {seg,smoother,lerp,clamp,outExpo,inExpo,premium,$,$$,css}=K;
+const ST=[
+ {x:0,y:0,n:'01',vis:`
+   <div class="ticket" style="--s:.92;left:50%;top:50%;margin:-101px 0 0 -239px;transform:rotate(-6deg)"><div class="t1">${COPY.passEyebrow}</div><div class="t2">${COPY.passTitle}</div><div class="perf"></div><div class="stub">${COPY.passNumber}</div></div>
+   <div class="chip" style="position:absolute;left:50%;bottom:30px;transform:translateX(-50%);white-space:nowrap"><i></i>${COPY.chip}</div>`},
+ {x:700,y:250,n:'02',vis:`
+   <div class="slab" style="--s:.5;left:50%;top:50%;margin:-175px 0 0 -105px;backdrop-filter:none">${CASE}<div class="glare" id="hg"></div></div>`},
+ {x:1400,y:0,n:'03',vis:`
+   <svg width="512" height="380" viewBox="0 0 512 380" style="position:absolute;left:0;top:0"><g transform="translate(256 190)">
+   <circle r="150" fill="none" style="stroke:rgb(var(--accent-rgb) / .2)" stroke-width="3"/><circle r="112" fill="none" style="stroke:color-mix(in srgb,var(--primary-hi) 60%,var(--text));stroke-opacity:.35" stroke-width="3" stroke-dasharray="4 10"/>
+   <g id="wheel"></g><circle r="58" style="fill:var(--primary)"/><circle r="58" fill="none" style="stroke:var(--accent)" stroke-width="4"/>
+   <text y="14" text-anchor="middle" font-weight="900" font-size="44" style="fill:var(--text);font-family:var(--display)">${COPY.dial}</text></g></svg>`},
+ {x:2100,y:250,n:'04',vis:`
+   <div class="slab" style="--s:.5;left:50%;top:50%;margin:-175px 0 0 -105px;backdrop-filter:none">${CASE}</div>
+   <svg width="512" height="380" style="position:absolute;left:0;top:0"><circle cx="372" cy="104" r="44" style="fill:var(--accent)"/><path id="cchk" d="M352 105 L367 120 L394 90" fill="none" style="stroke:var(--bg)" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" pathLength="1" stroke-dasharray="1 1"/></svg>`},
+].map((s,i)=>Object.assign(s,COPY.stations[i]));
+const world=$('#world');
+$$('#hud span').forEach((h,i)=>h.textContent=COPY.stations[i].k);
+ST.forEach((s,i)=>{const d=document.createElement('div');d.className='stn';d.style.left=s.x+'px';d.style.top=s.y+'px';
+  d.innerHTML=`<div class="top"><span>${s.n} · ${s.k}</span><b>${s.tag}</b></div><div class="vis">${s.vis}</div><div class="ttl display">${i==2?`<span class="foiltext" id="dft">${s.k}</span>`:s.k}</div><div class="sub">${s.sub}</div><div class="hl"></div>`;
+  world.appendChild(d); s.el=d; s.hl=d.querySelector('.hl');});
+// wheel ticks
+let wh=''; for(let i=0;i<36;i++){const a=i/36*Math.PI*2; wh+=`<rect x="-5" y="-136" width="10" height="${i%9?18:30}" rx="5" style="fill:${i%9?'rgb(var(--text-rgb) / .35)':'var(--warm)'}" transform="rotate(${i*10})"/>`;} $('#wheel').innerHTML=wh;
+// rail: smooth curve through nodes below each station
+const NY=430; const nodes=ST.map(s=>[s.x,s.y+NY]);
+let d=`M${nodes[0][0]-500},${nodes[0][1]+120} C${nodes[0][0]-250},${nodes[0][1]+120} ${nodes[0][0]-200},${nodes[0][1]} ${nodes[0][0]},${nodes[0][1]}`;
+for(let i=1;i<nodes.length;i++){const [x0,y0]=nodes[i-1],[x1,y1]=nodes[i]; d+=` C${x0+300},${y0} ${x1-300},${y1} ${x1},${y1}`;}
+d+=` C${nodes[3][0]+250},${nodes[3][1]} ${nodes[3][0]+300},${nodes[3][1]-120} ${nodes[3][0]+500},${nodes[3][1]-120}`;
+$('#rail').innerHTML=`<path d="${d}" fill="none" style="stroke:rgb(var(--accent-rgb) / .18)" stroke-width="4"/>
+ <path id="lit" d="${d}" fill="none" style="stroke:var(--accent)" stroke-width="5" stroke-linecap="round"/>
+ <circle id="spark" r="10" style="fill:color-mix(in srgb,var(--accent) 20%,#fff)"/><circle id="spark2" r="26" style="fill:rgb(var(--accent-rgb) / .25)"/>`;
+nodes.forEach(([x,y])=>{const n=document.createElement('div');n.className='node';n.style.left=x+'px';n.style.top=y+'px';world.insertBefore(n,ST[0].el);});
+const lit=$('#lit'), LEN=lit.getTotalLength();
+// arc-length of each node along the rail
+const nodeLen=nodes.map(([x,y])=>{let best=0,bd=1e9;for(let l=0;l<=LEN;l+=4){const p=lit.getPointAtLength(l);const dd=(p.x-x)**2+(p.y-y)**2;if(dd<bd){bd=dd;best=l;}}return best;});
+// camera schedule: hold at each station, travel between; last leg is the long pull-back return
+const H=0.8, TR=0.55; // hold, travel
+const sched=[]; let tt=0; for(let i=0;i<4;i++){sched.push({i,a:tt,b:tt+H});tt+=H; const tr=i<3?TR:6-tt; sched.push({from:i,to:(i+1)%4,a:tt,b:tt+tr});tt+=tr;}
+const ZF=1.12, CY=-40; // focus zoom; frame the panel a touch above centre
+window.frame=function(t){
+  t=((t%DUR)+DUR)%DUR;
+  let cx,cy,z,fx,fy,railPos,focusW=[0,0,0,0];
+  for(const s of sched){ if(t<s.a||t>s.b) continue;
+    if(s.i!==undefined){const u=(t-s.a)/(s.b-s.a); const S=ST[s.i]; cx=S.x; cy=S.y; z=ZF*(1+0.022*u); railPos=nodeLen[s.i]; focusW[s.i]=1;}
+    else{const u=(t-s.a)/(s.b-s.a), e=premium(u), A=ST[s.from], B=ST[s.to];
+      const longRet=s.to===0;
+      cx=lerp(A.x,B.x,e); cy=lerp(A.y,B.y,e);
+      const dip=Math.sin(Math.PI*u); z=lerp(ZF*1.022,ZF,smoother(u))*(1-(longRet?0.6:0.3)*Math.pow(dip,longRet?0.8:1.2));
+      railPos= longRet? lerp(nodeLen[3],LEN,smoother(seg(u,0,0.5))) : lerp(nodeLen[s.from],nodeLen[s.to],e);
+      if(longRet&&u>0.5) railPos=lerp(0,nodeLen[0],smoother(seg(u,0.5,1)));
+      focusW[s.from]=1-e; focusW[s.to]=e;}
+  }
+  // world transform
+  const tx=540-cx*z, ty=640+CY-cy*z;
+  world.style.transform=`translate(${tx.toFixed(2)}px,${ty.toFixed(2)}px) scale(${z.toFixed(4)})`;
+  $('#dots').style.transform=`translate(${(-cx*z*0.35%64).toFixed(2)}px,${(-cy*z*0.35%64).toFixed(2)}px)`;
+  // depth of field: blur grows with distance from the focus point (and with zoom)
+  ST.forEach((S,i)=>{const dist=Math.hypot(S.x-cx,S.y-cy); const b=clamp(dist/700)*14*z*(1-focusW[i]*0.9);
+    S.el.style.filter=b>0.2?`blur(${b.toFixed(2)}px) brightness(${(1-0.35*clamp(dist/700)).toFixed(3)})`:'none';
+    S.hl.style.opacity=(focusW[i]*focusW[i]*0.85).toFixed(3);
+  });
+  // rail progress
+  lit.setAttribute('stroke-dasharray',`${railPos.toFixed(1)} ${LEN}`);
+  const p=lit.getPointAtLength(railPos); ['#spark','#spark2'].forEach(s=>{$(s).setAttribute('cx',p.x);$(s).setAttribute('cy',p.y);});
+  $('#spark2').setAttribute('r',(22+6*Math.sin(t*Math.PI*4)).toFixed(2));
+  // hud
+  $$('#hud span').forEach((h,i)=>{const w=focusW[i]; h.style.color=`color-mix(in srgb,color-mix(in srgb,var(--accent) ${(w*100).toFixed(1)}%,var(--text)) ${((0.35+0.65*w)*100).toFixed(1)}%,transparent)`; h.style.background=`rgb(var(--accent-rgb) / ${(0.12*w).toFixed(3)})`;});
+  // station tertiary detail (always running, seamless)
+  const ph=2*Math.PI*t/DUR;
+  $('#wheel').setAttribute('transform',`rotate(${(t/DUR*360).toFixed(2)})`);
+  const hg=$('#hg'); hg.parentNode.style.setProperty('--g',(0.45+0.6*Math.sin(ph)).toFixed(3));
+  $('#cchk').setAttribute('stroke-dashoffset',(1-smoother(seg(t,4.1,4.6))*(1-smoother(seg(t,5.5,5.9)))).toFixed(3));
+  $('#dft').style.backgroundPosition=`${(t/DUR*220).toFixed(1)}% 0`;
+};
+frame(0);
+</script></body></html>

@@ -1,0 +1,8 @@
+{
+  "name": "motion-design-kit",
+  "private": true,
+  "type": "module",
+  "description": "Deterministic HTML-to-video motion styles. Each page defines window.DUR and window.frame(t).",
+  "scripts": { "render": "node render.mjs" },
+  "dependencies": { "playwright": "^1.47.0" }
+}

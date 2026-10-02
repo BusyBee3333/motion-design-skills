@@ -1,0 +1,4 @@
+/* Ember: warm dark theme (coffee black, orange primary, mint accent). */
+:root{--bg:#17110D;--bg2:#251B15;--bg3:#3A2A20;--primary:#E8622C;--primary-hi:#FF8A55;--primary-lo:#9C3A14;--accent:#9BE3C1;--accent-lo:#4FA884;
+--text:#FBF4EA;--text2:#EFE3D2;--warm:#F6C350;--warm-lo:#DE9F2E;--pop:#FF9FB0;
+--bg-rgb:23 17 13;--deep-rgb:10 7 5;--primary-rgb:232 98 44;--accent-rgb:155 227 193;--text-rgb:251 244 234;--warm-rgb:246 195 80;--pop-rgb:255 159 176}

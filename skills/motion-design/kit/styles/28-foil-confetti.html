@@ -1,0 +1,122 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link rel="stylesheet" href="../kit.css"><script src="../kit.js"></script>
+<style>
+#bg{position:absolute;inset:0;background:radial-gradient(64% 46% at 50% 42%,color-mix(in srgb,var(--primary-lo) 45%,var(--bg2)) 0%,color-mix(in srgb,var(--bg2) 75%,var(--bg)) 50%,var(--bg) 82%)}
+#flash{position:absolute;left:140px;top:160px;width:800px;height:800px;border-radius:50%;background:radial-gradient(closest-side,color-mix(in srgb,color-mix(in srgb,var(--primary-hi) 60%,var(--text)) 75%,transparent),rgb(var(--accent-rgb) / .25) 45%,rgb(var(--primary-rgb) / 0))}
+canvas{position:absolute;left:0;top:0}
+#slabwrap{position:absolute;left:340px;top:228px;width:400px;height:666px;transform-origin:50% 50%}
+#stamp{position:absolute;left:540px;top:556px;transform-origin:50% 50%;padding:20px 44px 24px;border-radius:22px;white-space:nowrap;
+  background:linear-gradient(160deg,rgb(var(--primary-rgb) / .96),color-mix(in srgb,var(--primary-lo) 96%,transparent));
+  box-shadow:inset 0 0 0 5px var(--text),inset 0 0 0 12px rgb(var(--text-rgb) / 0),inset 0 0 0 14px rgb(var(--accent-rgb) / .7),0 24px 60px rgb(var(--deep-rgb) / .55),0 0 50px rgb(var(--accent-rgb) / .35);
+  font-family:var(--display);font-weight:900;font-size:150px;line-height:.9;color:var(--text);text-transform:uppercase}
+#stamp small{display:block;text-align:center;font-family:var(--mono);font-weight:700;font-size:22px;letter-spacing:.32em;color:var(--accent);margin-top:6px}
+#eb{position:absolute;left:0;right:0;top:140px;text-align:center}
+#head{position:absolute;left:0;right:0;top:976px;text-align:center;font-size:132px;white-space:nowrap}
+#head .w{display:inline-block;margin:0 .11em;transform-origin:50% 90%}
+#sub{position:absolute;left:110px;right:110px;top:1124px;text-align:center;font-family:var(--sans);font-weight:600;font-size:34px;line-height:1.3;color:rgb(var(--text-rgb) / .8)}
+</style></head><body><div id="stage">
+<div id="bg"></div><div id="flash"></div>
+<canvas id="back" width="1080" height="1350"></canvas>
+<!-- showcase case. Your own art: <div class="art" style="--art:url(your-image.png)"></div> -->
+<div id="slabwrap"><div class="slab" style="--s:.952">
+  <div class="slab-label"><div class="l1" data-copy="caseEyebrow"></div><div class="l2" data-copy="caseTitle"></div><div class="grade" data-copy="caseNumber"></div></div>
+  <div class="slab-window"><div class="card" style="background:linear-gradient(170deg,var(--accent),var(--accent-lo))"><div class="art"></div><div class="name" data-copy="cardName"></div><div class="meta"></div></div></div>
+  <div class="glare"></div></div></div>
+<canvas id="front" width="1080" height="1350"></canvas>
+<div id="stamp"><span data-copy="stamp"></span><small data-copy="stampSmall"></small></div>
+<div id="eb" class="eyebrow" data-copy="eyebrow"></div>
+<div id="head" class="display"></div>
+<div id="sub" data-copy="sub"></div>
+<div class="grain"></div><div class="vignette"></div>
+</div>
+<script>
+window.DUR=5; window.POSTER=1.9;
+const {seg,smoother,lerp,outExpo,inExpo,premium,emph,outBack,outCubic,inCubic,hash,$,$$,css}=K;
+// COPY keys: stamp (one word, <= ~8 chars) + stampSmall (mono line under it), eyebrow (top mono line),
+// words (headline, 2-3 short words on one line; the last one gets the foil), sub (one or two short sentences),
+// caseEyebrow / caseTitle / caseNumber / cardName (showcase case label + card name).
+const COPY = K.copy({stamp:'Shipped', stampSmall:'EXPORT COMPLETE', eyebrow:'Lumen · Shipped', words:['Made','with','Lumen'],
+  sub:'Your first project is live. Share it anywhere.', caseEyebrow:'LUMEN · NO. 0028', caseTitle:'SHOWCASE', caseNumber:'01', cardName:'Prism Tide'});
+K.fill(COPY);
+$('#head').innerHTML=COPY.words.map((w,i)=>`<span class="w${i===COPY.words.length-1?' foiltext':''}">${w}</span>`).join('');
+const bx=$('#back').getContext('2d'), fx=$('#front').getContext('2d');
+const CX=540, CY=561, TB=.62;   // showcase case centre, burst time
+// confetti colours by theme role, resolved lazily in frame() ('hi+text' = primary-hi lifted 40% toward text)
+const COLS=['--accent','hi+text','--pop','--warm','--text','--primary-hi','--accent-lo'];
+let colv=[], colKey='';
+function themeCols(){ const cs=getComputedStyle(document.documentElement), k=COLS.map(r=>r[0]==='-'?cs.getPropertyValue(r):'').join(); if(k===colKey) return; colKey=k;
+  const c=r=>K.color(r).map(v=>Math.round(v*255));
+  colv=COLS.map(r=>r==='hi+text'? c('--primary-hi').map((v,i)=>Math.round(v*.6+c('--text')[i]*.4)) : c(r)); }
+// pieces: confetti rects, ribbons, sparkle stars
+const N=190, S=[];
+for(let i=0;i<N;i++){
+  const kind=i<26?'star':(hash(i,1)<.22?'rib':'rect');
+  const up=hash(i,2)<.82;                                  // most go up and out
+  const a= up? -Math.PI/2+(hash(i,3)-.5)*2.4 : (hash(i,3)<.5?0:Math.PI)+(hash(i,4)-.5)*1.1;
+  const v=900+hash(i,5)*1500;
+  S.push({kind,front:hash(i,6)<.45,x0:CX+(hash(i,7)-.5)*300,y0:CY+(hash(i,8)-.5)*420,vx:Math.cos(a)*v*1.05,vy:Math.sin(a)*v,
+    ci:Math.floor(hash(i,9)*COLS.length),w:kind==='rib'?7:14+hash(i,10)*12,h:kind==='rib'?40+hash(i,11)*30:8+hash(i,12)*8,
+    rot0:hash(i,13)*6.28,rs:(hash(i,14)-.5)*14,fl:6+hash(i,15)*10,ph:hash(i,16)*6.28,sw:16+hash(i,17)*30,
+    gd:hash(i,18)*.5,sz:kind==='star'?16+hash(i,19)*22:1});
+}
+const K_=3.0, G=980;     // linear drag, gravity (terminal ≈ 330 px/s)
+function phys(p,tau){const e=1-Math.exp(-K_*tau);
+  const x=p.x0+p.vx*e/K_ + Math.sin(tau*3.1+p.ph)*p.sw*Math.min(1,tau*1.5);
+  const y=p.y0+G/K_*tau+(p.vy-G/K_)*e/K_; return [x,y];}
+function star(ctx,r){ctx.beginPath();for(let k=0;k<8;k++){const a=k*Math.PI/4, rr=k%2?r*.22:r; ctx.lineTo(Math.cos(a)*rr,Math.sin(a)*rr);}ctx.closePath();}
+const words=$$('#head .w');
+window.frame=function(t){
+  t=((t%DUR)+DUR)%DUR;
+  themeCols();
+  bx.clearRect(0,0,1080,1350); fx.clearRect(0,0,1080,1350);
+  const tau=t-TB;
+  if(tau>0) S.forEach((p,i)=>{
+    const col=colv[p.ci];
+    // gather back into the showcase case (staggered), so the loop resets cleanly
+    const gu=seg(t,3.35+p.gd,4.35+p.gd), ge=inCubic(gu);
+    let [x,y]=phys(p,tau);
+    const ix=lerp(x,CX+(p.x0-CX)*.3,ge), iy=lerp(y,CY+(p.y0-CY)*.3,ge)-Math.sin(Math.PI*ge)*60;
+    const born=outExpo(seg(tau,0,.12));
+    const sc=born*(1-ge)*(p.front?1.08:.9);
+    if(sc<=.01)return;
+    const ctx=p.front?fx:bx;
+    ctx.save(); ctx.translate(ix,iy);
+    if(p.kind==='star'){
+      const tw=.55+.45*Math.cos(tau*9+p.ph); ctx.rotate(p.rot0+tau*1.2); ctx.scale(sc*tw,sc*tw);
+      ctx.globalAlpha=.95; ctx.fillStyle=`rgb(${col})`; ctx.shadowColor=`rgba(${col},.9)`; ctx.shadowBlur=14; star(ctx,p.sz); ctx.fill();
+    } else {
+      const flip=Math.cos(tau*p.fl+p.ph), spin=p.rot0+tau*p.rs*Math.exp(-tau*.35);
+      ctx.rotate(spin); ctx.scale(sc,sc*Math.max(.08,Math.abs(flip)));
+      // foil shimmer: brighter when facing camera
+      const lit=.65+.55*Math.abs(flip); const c=col.map(v=>Math.min(255,Math.round(v*lit)));
+      ctx.fillStyle=`rgb(${c})`; ctx.globalAlpha=p.front?1:.85;
+      if(p.kind==='rib'){ctx.beginPath();ctx.moveTo(-p.w/2,-p.h/2);ctx.bezierCurveTo(p.w*1.6,-p.h/6,-p.w*1.6,p.h/6,p.w/2,p.h/2);ctx.lineWidth=p.w;ctx.strokeStyle=ctx.fillStyle;ctx.lineCap='round';ctx.stroke();}
+      else ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h);
+    }
+    ctx.restore();
+  });
+  // showcase case: anticipation dip → punch on the stamp → settle; slow sway (seamless)
+  const ant=smoother(seg(t,.38,TB)), pun=seg(t,TB,TB+.5);
+  const slabS=(1-.035*ant*(t<TB?1:0)) * (t>=TB? 1+.06*Math.exp(-pun*6)*Math.cos(pun*16):1);
+  const ph=2*Math.PI*t/DUR;
+  css('#slabwrap',{transform:`perspective(1300px) rotateY(${(Math.sin(ph)*7).toFixed(2)}deg) rotate(${(Math.sin(ph)*1.2).toFixed(2)}deg) scale(${slabS.toFixed(4)}) translateY(${(Math.sin(ph*2)*6).toFixed(1)}px)`});
+  $('#slabwrap .slab').style.setProperty('--g',(premium(seg(t,TB,2.4))*1.4-.2).toFixed(3));
+  // stamp: drops in big, slams with ~15% overshoot, holds, leaves before the gather completes
+  const si=seg(t,TB-.16,TB), sb=seg(t,TB,TB+.42), so=inExpo(seg(t,3.55,3.85));
+  let ss=t<TB? lerp(2.3,1,inCubic(si)) : lerp(.86,1,outBack(sb,3.2));
+  if(t>=TB&&sb<.15) ss=lerp(1,.86,sb/.15);
+  ss*=1-so*.4;
+  css('#stamp',{opacity:(t<TB-.16?0:Math.min(1,si*2)*(1-so)).toFixed(3),
+    transform:`translate(-50%,-50%) rotate(${(t<TB?lerp(-22,-9,inCubic(si)):-9+2*Math.exp(-sb*5)*Math.sin(sb*20)).toFixed(2)}deg) scale(${ss.toFixed(4)})`});
+  // flash pulse behind the case on impact
+  const fl=seg(t,TB,TB+.9); css('#flash',{opacity:(t>=TB?(1-outCubic(fl))*.9:0).toFixed(3),transform:`scale(${lerp(.4,1.25,outExpo(fl)).toFixed(3)})`});
+  // headline: bouncy word pops, leave before the loop
+  words.forEach((w,i)=>{const a=1.05+i*.08, u=seg(t,a,a+.45), o=inExpo(seg(t,3.6+i*.04,3.88+i*.04));
+    css(w,{opacity:(Math.min(1,u*4)*(1-o)).toFixed(3),transform:`translateY(${((1-Math.min(1.2,outBack(u,2.4)))*60+o*40).toFixed(1)}px) scale(${(lerp(.6,1,outBack(u,2.4))*(1-.15*o)).toFixed(4)})`});});
+  $$('.foiltext').forEach(f=>f.style.backgroundPosition=`${(t/DUR*220).toFixed(1)}% 0`);
+  const s1=outExpo(seg(t,1.4,1.95)), s2=inExpo(seg(t,3.5,3.8));
+  css('#sub',{opacity:(s1*(1-s2)).toFixed(3),transform:`translateY(${((1-s1)*24+s2*16).toFixed(1)}px)`});
+  css('#eb',{opacity:.9});
+};
+frame(0);
+</script></body></html>

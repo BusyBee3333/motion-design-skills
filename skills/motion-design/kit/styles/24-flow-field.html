@@ -1,0 +1,128 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link rel="stylesheet" href="../kit.css"><script src="../kit.js"></script>
+<style>
+#bg{position:absolute;inset:0;background:radial-gradient(70% 50% at 50% 42%,color-mix(in srgb,var(--bg3) 70%,var(--bg2)) 0%,color-mix(in srgb,var(--bg2) 55%,var(--bg)) 48%,var(--bg) 80%)}
+canvas{position:absolute;left:0;top:0;width:1080px;height:1350px}
+#glow{filter:blur(16px);opacity:.75;mix-blend-mode:screen}
+#eb{position:absolute;left:0;right:0;top:130px;text-align:center}
+#head{position:absolute;left:0;right:0;top:880px;text-align:center;font-size:150px}
+#head .ln{display:block;white-space:nowrap}
+#head .w{display:inline-block;margin:0 .05em}
+#sub{position:absolute;left:120px;right:120px;top:1190px;text-align:center;font-family:var(--sans);font-weight:600;font-size:34px;color:rgb(var(--text-rgb) / .78)}
+</style></head><body><div id="stage">
+<div id="bg"></div>
+<canvas id="glow" width="540" height="675"></canvas>
+<canvas id="c" width="1080" height="1350"></canvas>
+<div id="eb" class="eyebrow" data-copy="eyebrow"></div>
+<div id="head" class="display"></div>
+<div id="sub" data-copy="sub"></div>
+<div class="grain"></div><div class="vignette"></div>
+</div>
+<script>
+window.DUR=6; window.POSTER=3.7;
+const {seg,smoother,lerp,outExpo,inExpo,premium,emph,hash,$,$$,css}=K;
+// COPY keys: eyebrow (top mono line), lines (headline: 2 lines of 1-2 short words; the last word of each line gets the foil),
+// sub (one sentence under the headline).
+const COPY = K.copy({eyebrow:'Lumen', lines:[['Draft','once.'],['Loop','forever.']], sub:'Every idea keeps moving, frame after frame.'});
+K.fill(COPY);
+$('#head').innerHTML=COPY.lines.map(l=>'<span class="ln">'+l.map((w,i)=>`<span class="w${i===l.length-1&&l.length>1?' foiltext':''}">${w}</span>`).join('')+'</span>').join('\n');
+const cv=$('#c'), ctx=cv.getContext('2d'), gv=$('#glow'), gx=gv.getContext('2d');
+// ---- seeded 2D value noise (2 octaves) ----
+function vn(x,y,s){const xi=Math.floor(x),yi=Math.floor(y),xf=x-xi,yf=y-yi,u=xf*xf*(3-2*xf),v=yf*yf*(3-2*yf);
+  const h=(a,b)=>hash(a+s*131,b-s*71);
+  return lerp(lerp(h(xi,yi),h(xi+1,yi),u),lerp(h(xi,yi+1),h(xi+1,yi+1),u),v);}
+function ang(x,y){return (vn(x*.0021,y*.0021,3)*1.0+vn(x*.0055,y*.0055,9)*.35)*Math.PI*2.6 - .9;}
+// ---- particles ----
+const N=2600, LIFE=DUR/2, DT=1/24, SPEED=120, TR=14;  // trail = 14 steps
+// particle colours by theme role ('hi+text' = primary-hi lifted 40% toward text); resolved lazily in frame()
+const COLS=['--primary-hi','--primary-hi','--primary','--accent','--accent','hi+text','--pop','--warm','--text'];
+let colv=null, colKey='';
+function themeCols(){ const k=COLS.map(r=>r[0]==='-'?K.hex(r):'').join(); if(k===colKey) return; colKey=k;
+  const mix=(a,b,u)=>'#'+K.color(a).map((v,i)=>Math.round((v*(1-u)+K.color(b)[i]*u)*255).toString(16).padStart(2,'0')).join('');
+  colv={}; COLS.forEach(r=>colv[r]=r==='hi+text'?mix('--primary-hi','--text',.4):K.hex(r)); }
+const P=[];
+for(let i=0;i<N;i++){
+  const r=hash(i,7)*0.999;
+  P.push({off:hash(i,1),col:COLS[Math.floor(hash(i,2)*COLS.length)],
+    s0:hash(i,3)*Math.PI*2, nrm:(hash(i,4)+hash(i,5)+hash(i,6)-1.5)*44, sp:.75+hash(i,8)*.5,
+    gd:hash(i,9)*.55, rd:hash(i,10)*.5, arc:(.35+.65*hash(i,11))*220, w:hash(i,12)<.12?2.4:1.3});
+}
+// infinity (lemniscate of Bernoulli), centre & size
+const CX=540, CY=560, A=455;
+function lem(s){const d=1+Math.sin(s)*Math.sin(s);return [CX+A*Math.cos(s)/d, CY+A*Math.sin(s)*Math.cos(s)/d*1.18];}
+function lemN(s){const a=lem(s-.01),b=lem(s+.01);let dx=b[0]-a[0],dy=b[1]-a[1];const l=Math.hypot(dx,dy)||1;return [-dy/l,dx/l];}
+const free=new Float32Array((Math.ceil(LIFE/DT)+3)*2);
+const trail=[]; for(let j=0;j<=TR;j++) trail.push([0,0]);
+const words=$$('#head .w');
+window.frame=function(t){
+  t=((t%DUR)+DUR)%DUR;
+  themeCols();
+  ctx.clearRect(0,0,1080,1350);
+  ctx.globalCompositeOperation='lighter';
+  ctx.lineCap='round';
+  const buckets={};
+  for(let i=0;i<N;i++){
+    const p=P[i];
+    // lifecycle (2 lives per loop, seeded birth per cycle index mod 2 → seamless)
+    const lifeU=t/LIFE+p.off, cyc=Math.floor(lifeU)%2, age=(lifeU-Math.floor(lifeU))*LIFE;
+    let x=hash(i*2+cyc,21)*1280-100, y=hash(i*2+cyc,22)*1550-100;
+    const steps=age/DT; const n=Math.floor(steps), fr=steps-n;
+    free[0]=x;free[1]=y;
+    for(let k=1;k<=n+1;k++){const a=ang(x,y); x+=Math.cos(a)*SPEED*DT*p.sp; y+=Math.sin(a)*SPEED*DT*p.sp; free[k*2]=x; free[k*2+1]=y;}
+    const lifeA=smoother(seg(age,0,.4))*(1-smoother(seg(age,LIFE-.5,LIFE)));
+    // gather into ∞ (staggered), release streaming away
+    const G=tt=>tt<3.4 ? premium(seg(tt,1.0+p.gd,2.45+p.gd)) : 1-premium(seg(tt,4.2+p.rd,5.3+p.rd));
+    const g0=G(t), tr=Math.sin(Math.PI*g0), sp=lerp(.9,.1,Math.sqrt(tr)), gEnd=G(t-TR*sp*DT);
+    for(let j=0;j<=TR;j++){
+      const tj=t-j*sp*DT, gi=(g0<=0&&gEnd<=0)?0:G(tj);
+      // free trail sample
+      const q=Math.max(0,steps-j*sp), qn=Math.floor(q), qf=q-qn;
+      const fx=lerp(free[qn*2],free[qn*2+2]??free[qn*2],qf), fy=lerp(free[qn*2+1],free[qn*2+3]??free[qn*2+1],qf);
+      if(gi<=0){trail[j][0]=fx;trail[j][1]=fy;continue;}
+      const s=p.s0+tj*1.05*p.sp; const L=lem(s), Nn=lemN(s);
+      const tx=L[0]+Nn[0]*p.nrm, ty=L[1]+Nn[1]*p.nrm;
+      // arc on the way in/out (perpendicular swirl)
+      const dx=tx-fx, dy=ty-fy, dl=Math.hypot(dx,dy)||1, sw=Math.sin(Math.PI*gi)*p.arc*Math.min(1,dl/300);
+      trail[j][0]=lerp(fx,tx,gi)+(-dy/dl)*sw; trail[j][1]=lerp(fy,ty,gi)+(dx/dl)*sw;
+    }
+    const gi=g0; const alpha=lerp(lifeA,1,gi)*(.62-.22*gi)*(1-.5*tr);
+    if(alpha<.02)continue;
+    // two passes per particle: tail (faint) and head (bright)
+    const key=p.col+'|'+p.w;
+    (buckets[key]||(buckets[key]={col:p.col,w:p.w,tail:[],head:[]}));
+    const b=buckets[key];
+    b.tail.push(trail.slice(5).map(v=>[v[0],v[1]]), alpha);
+    b.head.push(trail.slice(0,6).map(v=>[v[0],v[1]]), alpha);
+  }
+  for(const k in buckets){const b=buckets[k];
+    for(const [arr,lw,al] of [[b.tail,b.w,.32],[b.head,b.w*1.25,.85]]){
+      // split by alpha quantised to keep batching
+      for(let qa=1;qa<=4;qa++){
+        ctx.beginPath(); let any=false;
+        for(let m=0;m<arr.length;m+=2){const a=arr[m+1]; if(Math.ceil(a*4)!==qa)continue; const pts=arr[m]; any=true;
+          ctx.moveTo(pts[0][0],pts[0][1]); for(let z=1;z<pts.length;z++)ctx.lineTo(pts[z][0],pts[z][1]);}
+        if(!any)continue;
+        ctx.strokeStyle=colv[b.col]; ctx.globalAlpha=al*qa/4; ctx.lineWidth=lw; ctx.stroke();
+      }
+    }
+  }
+  ctx.globalAlpha=1; ctx.globalCompositeOperation='source-over';
+  // glow layer (downsampled copy, CSS blur)
+  gx.clearRect(0,0,540,675); gx.drawImage(cv,0,0,540,675);
+  const hold=smoother(seg(t,2.3,3.0))*(1-smoother(seg(t,4.1,4.6)));
+  css(gv,{opacity:(.55+.35*hold).toFixed(3)});
+  // ∞ breathes slowly in hold (no dead hold)
+  const push=1+.03*smoother(seg(t,2.2,4.6));
+  css(cv,{transform:`scale(${push.toFixed(4)})`,transformOrigin:`${CX}px ${CY}px`});
+  css(gv,{transform:`scale(${push.toFixed(4)})`,transformOrigin:`${CX}px ${CY}px`});
+  // headline: staggered word rise once the ∞ has formed; leaves before release
+  const out=inExpo(seg(t,4.0,4.4));
+  words.forEach((w,i)=>{const a=2.35+i*.09, e=emph(seg(t,a,a+.6)), u=smoother(seg(t,a,a+.45));
+    css(w,{opacity:(u*(1-out)).toFixed(3),transform:`translateY(${((1-e)*60-out*36).toFixed(1)}px)`,filter:`blur(${((1-u)*8+out*6).toFixed(2)}px)`});});
+  $$('.foiltext').forEach(f=>f.style.backgroundPosition=`${(t/DUR*220).toFixed(1)}% 0`);
+  const si=outExpo(seg(t,2.75,3.3)), so=inExpo(seg(t,3.95,4.3));
+  css('#sub',{opacity:(si*(1-so)).toFixed(3),transform:`translateY(${((1-si)*24-so*14).toFixed(1)}px)`});
+  css('#eb',{opacity:(.55+.4*hold).toFixed(3)});
+};
+frame(0);
+</script></body></html>

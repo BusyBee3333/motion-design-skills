@@ -1,0 +1,133 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link rel="stylesheet" href="../kit.css"><script src="../kit.js"></script>
+<style>
+#bg{position:absolute;inset:0;background:radial-gradient(70% 55% at 50% 48%,color-mix(in srgb,var(--bg3) 82%,var(--bg)) 0%,color-mix(in srgb,var(--bg2) 75%,var(--bg)) 50%,var(--bg) 82%)}
+#cv{position:absolute;left:0;top:0}
+#cardwrap{position:absolute;left:120px;top:208px;width:840px;height:934px;transform-origin:50% 50%}
+#card{position:absolute;inset:0;border-radius:40px;overflow:hidden;
+  background:linear-gradient(170deg,color-mix(in srgb,var(--bg3) 92%,transparent),color-mix(in srgb,var(--bg2) 94%,transparent));
+  box-shadow:inset 0 0 0 2px rgba(255,255,255,.22),inset 0 0 0 12px rgba(255,255,255,.035),0 50px 110px rgba(0,0,0,.5),0 0 90px rgb(var(--primary-rgb) / .45)}
+.reg{position:absolute;left:36px;right:36px;border-radius:26px;overflow:hidden}
+.wash{position:absolute;inset:0;pointer-events:none}
+.edge{position:absolute;top:0;bottom:0;width:120px;margin-left:-120px;background:linear-gradient(90deg,transparent,rgb(var(--accent-rgb) / 0) 20%,rgb(var(--accent-rgb) / .65) 85%,#fff);mix-blend-mode:screen;filter:blur(2px)}
+#hdr{top:36px;height:270px;background:linear-gradient(120deg,var(--primary) 0%,color-mix(in srgb,var(--primary) 50%,var(--primary-hi)) 55%,var(--accent-lo) 130%)}
+#hdr .eb{position:absolute;left:44px;top:42px;font-family:var(--mono);font-weight:700;font-size:24px;letter-spacing:.2em;color:rgb(var(--text-rgb) / .85)}
+#hdr .big{position:absolute;left:40px;top:92px;font-size:184px;color:var(--text)}
+#hdr .shine{position:absolute;inset:0;background:linear-gradient(115deg,transparent 30%,rgba(255,255,255,.25) 45%,transparent 60%)}
+#mini{position:absolute;right:46px;top:44px}
+.row{height:180px;background:rgb(var(--text-rgb) / .06);box-shadow:inset 0 0 0 2px rgb(var(--text-rgb) / .10)}
+.row .n{position:absolute;left:34px;top:50%;width:78px;height:78px;margin-top:-39px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-family:var(--mono);font-weight:700;font-size:30px;color:var(--bg);background:var(--accent)}
+.row .lab{position:absolute;left:142px;right:136px;top:66px;font-family:var(--sans);font-weight:700;font-size:38px;line-height:1.1;color:var(--text)}
+.row .k{position:absolute;left:142px;top:28px;font-family:var(--mono);font-weight:700;font-size:20px;letter-spacing:.18em;color:var(--accent)}
+.row .ck{position:absolute;right:36px;top:50%;width:76px;height:76px;margin-top:-38px;border-radius:50%;background:var(--foil);background-size:200% 100%;box-shadow:0 0 30px rgb(var(--accent-rgb) / .45)}
+.row .ck svg{position:absolute;inset:0}
+.row .ck path{stroke:var(--bg)}
+.row .tint{position:absolute;inset:0;background:linear-gradient(90deg,rgb(var(--accent-rgb) / .16),rgb(var(--primary-rgb) / .12));}
+#r1{top:326px}#r2{top:522px}#r3{top:718px}
+
+.ghost{position:absolute;left:36px;right:36px;height:180px;border-radius:26px;border:2px dashed rgb(var(--accent-rgb) / .22);background:rgb(var(--accent-rgb) / .03)}
+#glare{position:absolute;inset:-20%;pointer-events:none;mix-blend-mode:screen}
+#eb{position:absolute;left:0;right:0;top:118px;text-align:center}
+#foot{position:absolute;left:0;right:0;top:1200px;text-align:center;font-family:var(--mono);font-weight:700;font-size:26px;letter-spacing:.16em;color:rgb(var(--text-rgb) / .7)}
+</style></head><body><div id="stage">
+<div id="bg"></div>
+<div id="eb" class="eyebrow" data-copy="eyebrow"></div>
+<div id="cardwrap"><div id="card">
+  <div class="ghost" style="top:36px;height:270px"></div><div class="ghost" style="top:326px"></div><div class="ghost" style="top:522px"></div><div class="ghost" style="top:718px"></div>
+  <div class="reg" id="hdr"><div class="shine"></div>
+    <div class="eb" data-copy="label"></div>
+    <div class="big display" data-copy="headline"></div>
+    <div id="mini"><div class="slab" style="--s:.3;position:relative"><div class="slab-label"><div class="l1" data-copy="caseEyebrow"></div><div class="l2" data-copy="caseTitle"></div><div class="grade" data-copy="caseNumber"></div></div><div class="slab-window"><div class="card"><!-- HERO ART: add style="--art:url(your.png)" to .art to drop in your own image --><div class="art"></div><div class="meta"></div></div></div></div></div>
+    <div class="wash"><div class="edge"></div></div></div>
+  <div class="reg row" id="r1"><div class="tint"></div><div class="n">1</div><div class="k" data-copy="k1"></div><div class="lab" style="top:70px;font-size:46px" data-copy="s1"></div><div class="ck"><svg viewBox="0 0 76 76"><path d="M22 39 L33 50 L55 27" fill="none" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" pathLength="1"/></svg></div><div class="wash"><div class="edge"></div></div></div>
+  <div class="reg row" id="r2"><div class="tint"></div><div class="n">2</div><div class="k" data-copy="k2"></div><div class="lab" data-copy="s2"></div><div class="ck"><svg viewBox="0 0 76 76"><path d="M22 39 L33 50 L55 27" fill="none" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" pathLength="1"/></svg></div><div class="wash"><div class="edge"></div></div></div>
+  <div class="reg row" id="r3"><div class="tint"></div><div class="n">3</div><div class="k" data-copy="k3"></div><div class="lab" data-copy="s3"></div><div class="ck"><svg viewBox="0 0 76 76"><path d="M22 39 L33 50 L55 27" fill="none" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" pathLength="1"/></svg></div><div class="wash"><div class="edge"></div></div></div>
+  <div id="glare"></div>
+</div></div>
+<canvas id="cv" width="1080" height="1350"></canvas>
+<div id="foot" data-copy="footer"></div>
+<div class="grain"></div><div class="vignette"></div>
+</div>
+<script>
+window.DUR=6; window.POSTER=3.9;
+// COPY: eyebrow = line above the card, label = small header tag, headline = big header word (≤ 6 letters),
+// caseEyebrow/caseTitle/caseNumber = mini showcase-case label, k1-k3 = row kickers, s1 = short first step (1 word), s2/s3 = step lines (≤ 32 chars), footer = URL line.
+const COPY = K.copy({
+  eyebrow:'Lumen · Every project', label:'YOUR RESULT', headline:'Done',
+  caseEyebrow:'LUMEN', caseTitle:'SHOWCASE', caseNumber:'01',
+  k1:'STEP ONE', s1:'Sketched', k2:'STEP TWO', s2:'Animated in a single pass', k3:'STEP THREE', s3:'Exported and shared anywhere',
+  footer:'lumen.app'
+});
+K.fill(COPY);
+let PAL=null; // dot colours, read lazily from the theme on the first frame (render.mjs injects --theme after load)
+window.onTheme=()=>{PAL=null;};   // render.mjs calls this after injecting --theme
+const {seg,smoother,lerp,outExpo,inExpo,premium,emph,accel,spring,$,$$,css,hash,clamp}=K;
+const cv=$('#cv'), cx=cv.getContext('2d');
+const CX=540, CY=675, CW=840, CH=934;
+// dots: grid inside the card + extra perimeter dots
+const D=[]; const GX=24, GY=26;
+for(let j=0;j<GY;j++)for(let i=0;i<GX;i++){
+  const k=D.length; D.push({u:(i+.5)/GX-.5, v:(j+.5)/GY-.5, fx:hash(k,1)*1180-50, fy:hash(k,2)*1450-50, s:hash(k,3), c:hash(k,4)});
+}
+const regs=[['#hdr',1.30,.55],['#r1',1.85,.42],['#r2',2.20,.42],['#r3',2.55,.42]];
+window.frame=function(t){
+  t=((t%DUR)+DUR)%DUR; const ph=t/DUR, TAU=2*Math.PI;
+  // gather 0→1, released at end (accelerating exit)
+  const gIn=premium(seg(t,0.05,1.05)), gOut=accel(seg(t,4.95,5.85));
+  const g = t<3 ? gIn : 1-gOut;
+  // card size: compact while dots gather, grows to full
+  const grow = t<3 ? emph(seg(t,0.8,1.55)) : 1-inExpo(seg(t,4.75,5.2))*.25;
+  const sz = lerp(.6,1,grow);
+  const shellIn = smoother(seg(t,0.95,1.35)), shellOut = smoother(seg(t,4.78,5.12));
+  const shell = shellIn*(1-shellOut);
+  const push = 1+0.025*smoother(seg(t,1.4,4.8));
+  css('#cardwrap',{opacity:shell.toFixed(3),transform:`scale(${(sz*push).toFixed(4)})`,filter:`blur(${((1-shell)*10).toFixed(2)}px)`});
+  // dots
+  if(!PAL) PAL={a:K.color('--accent').map(v=>Math.round(v*255)).join(','),p:K.color('--primary-hi').map((v,i)=>Math.round((v*.6+K.color('--text')[i]*.4)*255)).join(','),t:K.color('--text').map(v=>Math.round(v*255)).join(',')};
+  cx.clearRect(0,0,1080,1350);
+  const dotA = 1-shell;
+  D.forEach((d,k)=>{
+    const dr=Math.sin(TAU*ph+d.s*TAU)*26, dr2=Math.cos(TAU*ph*2+d.c*TAU)*18;
+    const fx=d.fx+dr, fy=d.fy+dr2;
+    const tx=CX+d.u*CW*sz*push, ty=CY+d.v*CH*sz*push;
+    // per-dot stagger (radial) so the convergence ripples
+    const r=Math.hypot(d.u,d.v*1.1);
+    const gg=clamp(g*1.4 - r*.35 - d.s*.12);
+    const x=lerp(fx,tx,smoother(gg)), y=lerp(fy,ty,smoother(gg));
+    const rad=lerp(2.2+d.s*2.6,4.2,gg);
+    const a=(lerp(.35+.45*d.c,1,gg))*Math.max(dotA,0);
+    if(a<.01)return;
+    cx.fillStyle = d.c>.62?`rgba(${PAL.a},${a})`:d.c>.25?`rgba(${PAL.p},${a})`:`rgba(${PAL.t},${a})`;
+    cx.beginPath(); cx.arc(x,y,rad,0,TAU); cx.fill();
+    if(gg>.9){cx.fillStyle=`rgba(${PAL.a},${a*.12})`;cx.beginPath();cx.arc(x,y,rad*3,0,TAU);cx.fill();}
+  });
+  // region washes, in order
+  const fade = 1-smoother(seg(t,4.7,4.95));
+  regs.forEach(([sel,a,dur],i)=>{
+    const el=$(sel), u=premium(seg(t,a,a+dur));
+    el.style.clipPath=`inset(0 ${((1-u)*100).toFixed(2)}% 0 0 round 26px)`;
+    el.style.opacity=fade.toFixed(3); el.style.visibility=u>0.001?'visible':'hidden';
+    const edge=el.querySelector('.edge'); edge.style.left=(u*100).toFixed(2)+'%'; edge.style.opacity=(Math.sin(Math.PI*u)).toFixed(3);
+    $$('.ghost')[i].style.opacity=(1-smoother(seg(t,a+dur*.6,a+dur+.1))).toFixed(3);
+    const ck=el.querySelector('.ck');
+    if(ck){ const cs=spring(t-(a+dur-.05),220,15); const p=el.querySelector('path');
+      css(ck,{transform:`scale(${(t>a+dur-.05?cs:0).toFixed(4)}) rotate(${((1-clamp(cs))*-40).toFixed(1)}deg)`});
+      p.style.strokeDasharray='1'; p.style.strokeDashoffset=(1-smoother(seg(t,a+dur+.05,a+dur+.3))).toFixed(3);
+      const lab=el.querySelector('.lab'), k=el.querySelector('.k'), n=el.querySelector('.n'); const lu=outExpo(seg(t,a+.12,a+.6));
+      css(lab,{transform:`translateX(${((1-lu)*40).toFixed(1)}px)`}); css(k,{opacity:lu.toFixed(3)});
+      
+    } else {
+      const bu=emph(seg(t,a+.18,a+.75)); css(el.querySelector('.big'),{transform:`translateY(${((1-bu)*60).toFixed(1)}px)`,opacity:smoother(seg(t,a+.18,a+.5)).toFixed(3)});
+      css('#mini',{transform:`translateY(${((1-bu)*-30).toFixed(1)}px) rotate(${lerp(-14,8,bu).toFixed(2)}deg)`});
+      el.querySelector('.shine').style.transform=`translateX(${lerp(-60,60,smoother(seg(t,1.6,4.6))).toFixed(1)}%)`;
+    }
+  });
+  const gl=smoother(seg(t,3.0,4.3));
+  $('#glare').style.background=`linear-gradient(115deg,transparent ${30+gl*60-12}%,rgba(255,255,255,.22) ${36+gl*60-12}%,rgb(var(--accent-rgb) / .12) ${40+gl*60-12}%,transparent ${46+gl*60-12}%)`;
+  $$('.ck').forEach(c=>c.style.backgroundPosition=`${(ph*200).toFixed(1)}% 0`);
+  css('#eb',{opacity:(.9*smoother(seg(t,1.2,1.7))*(1-smoother(seg(t,4.7,5.0)))).toFixed(3)});
+  css('#foot',{opacity:(smoother(seg(t,2.9,3.3))*(1-smoother(seg(t,4.7,4.95)))).toFixed(3)});
+};
+frame(0);
+</script></body></html>

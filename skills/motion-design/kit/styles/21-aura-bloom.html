@@ -1,0 +1,147 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link rel="stylesheet" href="../kit.css"><script src="../kit.js"></script>
+<style>
+canvas{position:absolute;left:0;top:0;width:1080px;height:1350px}
+#tw{position:absolute;left:540px;top:675px;width:0;height:0}
+#tw .ticket{left:-390px;top:-165px;box-shadow:none;filter:drop-shadow(0 30px 50px rgb(var(--deep-rgb) / .55))}
+#tw .ticket .stub svg{width:62%;height:auto}
+#tw .ticket .t2{font-size:calc(66px*var(--s));top:38%}
+#tw .ticket .t1{top:20%}
+#head{position:absolute;left:0;right:0;top:170px;text-align:center;font-size:176px;white-space:nowrap}
+#eb{position:absolute;left:0;right:0;top:110px;text-align:center}
+#sub{position:absolute;left:0;right:0;top:1000px;text-align:center;font-family:var(--sans);font-weight:600;font-size:36px;color:rgb(var(--text-rgb) / .86)}
+#url{position:absolute;left:0;right:0;top:1222px;text-align:center}
+#url .chip{font-size:20px}
+</style></head><body><div id="stage">
+<canvas id="gl" width="2160" height="2700"></canvas>
+<div id="eb" class="eyebrow" data-copy="eyebrow"></div>
+<div id="head" class="display"><span class="foiltext" id="h1" data-copy="headline"></span></div>
+<div id="tw"><div class="ticket" style="--s:1.5">
+  <div class="t1" data-copy="passEyebrow"></div><div class="t2" data-copy="passTitle"></div><div class="perf"></div>
+  <!-- STUB MARK: swap this SVG for your own logo (stroke uses the theme text colour) -->
+  <div class="stub"><svg viewBox="0 0 100 50"><path d="M50 25C40 9 18 6 11 18S16 44 30 41S44 31 50 25S60 9 74 9S95 22 89 34S62 43 50 25Z" fill="none" style="stroke:var(--text)" stroke-width="7.5" stroke-linejoin="round"/></svg></div></div></div>
+<div id="sub" data-copy="sub"></div>
+<div id="url"><span class="chip"><i></i><span data-copy="url"></span></span></div>
+<div class="grain"></div><div class="vignette"></div>
+</div>
+<script>
+// COPY: eyebrow = small top line, headline = foil headline (<= 12 characters), passEyebrow/passTitle = text on the pass,
+// sub = line under the pass, url = chip at the bottom.
+const COPY = K.copy({
+  eyebrow:'Lumen', headline:'Every beat.', passEyebrow:'LUMEN · PASS', passTitle:'One pass',
+  sub:'Every project, always in sync.', url:'lumen.app',
+});
+K.fill(COPY);
+// Aura bloom: mesh-gradient field (gaussian blobs on closed orbits, after Leonxlnx/lumenshaders "Soft Bloom")
+// + aura rings emitted from the pass's rounded-box SDF on a lub-dub heartbeat; rings relax from pass shape to circles as they travel.
+window.DUR=4.8; window.POSTER=0.62;
+const {seg,smoother,outExpo,inExpo,premium,css,$}=K;
+const BEAT=2.4, LUB=0.25, DUB=0.55;
+const FS=`#version 300 es
+precision highp float;
+uniform vec2 R; uniform float ph; uniform float age[4]; uniform float pulse;
+uniform vec3 INK, VIO, VLO, VHI, ICE, WARM, ROSE, FA, FB, FC, FD;   // theme roles, set from JS
+out vec4 o;
+#define TAU 6.28318530718
+vec3 foil(float t){t=fract(t)*4.;
+ vec3 a=FA,b=FB,c=FC,d=FD;
+ return t<1.?mix(a,b,smoothstep(0.,1.,t)):t<2.?mix(b,c,smoothstep(1.,2.,t)):t<3.?mix(c,d,smoothstep(2.,3.,t)):mix(d,a,smoothstep(3.,4.,t));}
+float sdBox(vec2 p, vec2 b, float r){vec2 q=abs(p)-b+r;return length(max(q,0.))+min(max(q.x,q.y),0.)-r;}
+float h21(vec2 p){vec3 q=fract(vec3(p.xyx)*.1031);q+=dot(q,q.yzx+33.33);return fract((q.x+q.y)*q.z);}
+void main(){
+  vec2 px=gl_FragCoord.xy/R*vec2(1080.,1350.); px.y=1350.-px.y;
+  vec2 p=px-vec2(540.,675.);
+  float P=TAU*ph;
+  // ---- mesh gradient: 5 blobs on closed orbits ----
+  vec3 col=INK;
+  vec2 c0=vec2(-260.,-430.)+vec2(cos(P),sin(P))*90.;
+  vec2 c1=vec2(300.,-250.)+vec2(cos(-P+1.),sin(-P+1.))*110.;
+  vec2 c2=vec2(-300.,330.)+vec2(cos(P+2.),sin(P*2.+2.))*80.;
+  vec2 c3=vec2(280.,420.)+vec2(cos(-P*2.+4.),sin(-P+4.))*100.;
+  vec2 c4=vec2(0.,40.)+vec2(cos(P+3.),sin(P+3.))*40.;
+  float s=1.+.06*pulse;
+  col=mix(col,VLO,.85*exp(-dot(p-c0,p-c0)/(380.*380.*s)));
+  col=mix(col,VIO,.70*exp(-dot(p-c1,p-c1)/(330.*330.*s)));
+  col=mix(col,ICE*.55,.55*exp(-dot(p-c2,p-c2)/(300.*300.*s)));
+  col=mix(col,ROSE*.45,.45*exp(-dot(p-c3,p-c3)/(280.*280.*s)));
+  col=mix(col,VHI,.55*exp(-dot(p-c4,p-c4)/(360.*360.*s)));
+  col=mix(col,INK,.35);
+  // ---- aura rings from the pass silhouette ----
+  vec2 b=vec2(390.,165.);
+  float dbox=sdBox(p,b,27.);
+  float dc=length(p*vec2(1.,1.25))-330.;
+  float ang=atan(p.y,p.x);
+  vec3 rings=vec3(0.);
+  for(int i=0;i<4;i++){
+    float a=age[i]; if(a<0.||a>2.4) continue;
+    float u=a/2.4;
+    float rad=pow(u,.62)*760.;
+    float morph=smoothstep(40.,520.,rad);
+    float d=mix(dbox,dc+190.,morph);
+    float w=10.+70.*u;
+    float g=exp(-pow((d-rad)/w,2.));
+    float fade=pow(1.-u,1.8)*smoothstep(0.,.06,u);
+    vec3 rc=(i%2==0)? mix(ICE,WARM,.25) : VHI;
+    rc=mix(rc, foil(ang/TAU+u*.6+ph), .45);
+    float inner=exp(-pow((d-rad*.86)/(w*1.8),2.))*.35;   // soft inner bloom trailing each ring
+    rings+=rc*(g*1.05+inner)*fade*(i%2==0?1.:.75);
+  }
+  // standing aura: colour ramp by (box->circle) distance, wobbling on a closed noise loop
+  float dm=mix(dbox, dc+190., smoothstep(0.,420.,max(dbox,0.)));
+  float wob=(sin(ang*3.+P)*.5+sin(ang*5.-P*2.+1.3)*.3+sin(ang*2.-P+2.)*.2)*26.*smoothstep(0.,120.,dbox);
+  float ar=clamp((dm+wob)/(640.+60.*pulse),0.,1.);
+  vec3 au=mix(mix(ICE,VHI,.2)*1.12, VHI, smoothstep(.02,.24,ar));
+  au=mix(au, mix(ROSE,VHI,.35)*.8, smoothstep(.24,.5,ar));
+  au=mix(au, VLO, smoothstep(.45,.75,ar));
+  au=mix(au, INK, smoothstep(.7,1.,ar));
+  float band=.5+.5*cos(ar*TAU*3.-P*3.);             // faint standing contours drifting outward
+  col=mix(col, au, (.55+.12*pulse)*(1.-smoothstep(.75,1.,ar))*(.86+.14*band));
+  col+=rings;
+  // ---- halo hugging the pass, swells on the beat ----
+  float halo=exp(-max(dbox,0.)/(70.+40.*pulse));
+  col+=mix(VIO,ICE,.35)*halo*(.22+.55*pulse);
+  // keep the type zones calm
+  col=mix(col,INK*.9,.5*exp(-pow((px.y-250.)/120.,2.)));
+  col=mix(col,INK*.9,.35*exp(-pow((px.y-1022.)/50.,2.)));
+  col=col/(1.+col*.3);
+  float n=h21(gl_FragCoord.xy+floor(ph*48.))-.5;  // dither against banding
+  o=vec4(col+n/255.*1.5,1.);
+}`;
+function mkGL(cv,fs){
+  const gl=cv.getContext('webgl2',{preserveDrawingBuffer:true,antialias:false});
+  const sh=(t,s)=>{const x=gl.createShader(t);gl.shaderSource(x,s);gl.compileShader(x);if(!gl.getShaderParameter(x,gl.COMPILE_STATUS))console.error(gl.getShaderInfoLog(x));return x;};
+  const pr=gl.createProgram();gl.attachShader(pr,sh(gl.VERTEX_SHADER,'#version 300 es\nin vec2 a;void main(){gl_Position=vec4(a,0,1);}'));gl.attachShader(pr,sh(gl.FRAGMENT_SHADER,fs));gl.linkProgram(pr);gl.useProgram(pr);
+  const bf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,bf);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(0);gl.vertexAttribPointer(0,2,gl.FLOAT,false,0,0);gl.viewport(0,0,cv.width,cv.height);
+  const U=n=>gl.getUniformLocation(pr,n); gl.uniform2f(U('R'),cv.width,cv.height);
+  return {gl,U,draw(){gl.drawArrays(gl.TRIANGLES,0,3);}};
+}
+const G=mkGL($('#gl'),FS);
+// heartbeat envelope: lub (strong) then dub (softer), each a fast attack + damped release
+const kick=(u)=> u<0?0: (1-Math.exp(-u*40))*Math.exp(-u*6.5);
+// Theme -> shader colours. Read LAZILY (every frame) because render.mjs injects --theme after load.
+// Foil stops follow --foil in theme.css: accent, primary-hi lifted toward white, pop, warm.
+const THEME={INK:'--bg',VIO:'--primary',VLO:'--primary-lo',VHI:'--primary-hi',ICE:'--accent',WARM:'--text',ROSE:'--pop',FA:'--accent',FC:'--pop',FD:'--warm'};
+function applyTheme(gl,U){
+  for(const k in THEME){const l=U(k); if(l) gl.uniform3fv(l,K.color(THEME[k]));}
+  const l=U('FB'); if(l) gl.uniform3fv(l,K.color('--primary-hi').map(v=>v+(1-v)*.38));
+}
+window.frame=function(t){
+  t=((t%DUR)+DUR)%DUR; const ph=t/DUR;
+  applyTheme(G.gl,G.U);
+  const u=t%BEAT;
+  // ring ages (each ring lives one beat period, so the loop is seamless)
+  const a0=((u-LUB)%BEAT+BEAT)%BEAT, a1=((u-DUB)%BEAT+BEAT)%BEAT;
+  const pulse=Math.min(1,(kick(a0)+.65*kick(a1))*1.6);
+  G.gl.uniform1f(G.U('ph'),ph); G.gl.uniform1f(G.U('pulse'),pulse);
+  G.gl.uniform1fv(G.U('age'),new Float32Array([a0,a1,-1,-1]));
+  G.draw();
+  // pass: thump on the beat (scale 1 -> 1.035) plus slow float
+  const P=2*Math.PI*ph;
+  css('#tw',{transform:`translateY(${-6*Math.sin(P)}px) scale(${1+.035*pulse}) rotate(${-1.2+0.6*Math.sin(P)}deg)`});
+  css('#h1',{backgroundPosition:`${ph*220}% 0`});
+  css('#head',{transform:`scale(${1+.012*pulse+.008*Math.sin(P)})`,letterSpacing:`${.005+.01*pulse}em`});
+  css('#sub',{opacity:.9});
+};
+frame(0);
+</script></body></html>

@@ -1,0 +1,115 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link rel="stylesheet" href="../kit.css"><script src="../kit.js"></script>
+<style>
+#bg{position:absolute;inset:0;background:
+  radial-gradient(55% 40% at 38% 46%,rgb(var(--primary-rgb) / .38),transparent 70%),
+  radial-gradient(90% 70% at 45% 40%,color-mix(in srgb,var(--bg2) 85%,var(--bg3)) 0%,color-mix(in srgb,var(--bg) 70%,var(--bg2)) 60%,var(--bg) 100%)}
+#grid{position:absolute;inset:0;opacity:.5;
+  background-image:linear-gradient(rgb(var(--accent-rgb) / .05) 1px,transparent 1px),linear-gradient(90deg,rgb(var(--accent-rgb) / .05) 1px,transparent 1px);
+  background-size:54px 54px;-webkit-mask:radial-gradient(60% 50% at 40% 48%,#000,transparent);mask:radial-gradient(60% 50% at 40% 48%,#000,transparent)}
+.scene{position:absolute;inset:0;perspective:2000px;perspective-origin:380px 600px}
+#rig{position:absolute;left:378px;top:630px;width:0;height:0;transform-style:preserve-3d}
+.layer{position:absolute;transform-style:preserve-3d}
+.plate{position:absolute;inset:0;border-radius:calc(26px*var(--s))}
+.shellF{background:linear-gradient(160deg,rgba(255,255,255,.26),rgba(255,255,255,.05) 38%,rgb(var(--accent-rgb) / .08) 70%,rgba(255,255,255,.18));
+  box-shadow:inset 0 0 0 calc(2px*var(--s)) rgba(255,255,255,.66),inset 0 0 0 calc(10px*var(--s)) rgba(255,255,255,.07);overflow:hidden}
+.shellB{background:linear-gradient(170deg,color-mix(in srgb,color-mix(in srgb,var(--primary-lo) 50%,var(--bg3)) 75%,transparent),color-mix(in srgb,var(--bg2) 88%,transparent));
+  box-shadow:inset 0 0 0 calc(2px*var(--s)) rgba(255,255,255,.45),0 40px 80px rgba(0,0,0,.45),0 0 70px rgb(var(--primary-rgb) / .35)}
+.recess{position:absolute;left:8%;right:8%;top:22.5%;bottom:4.5%;border-radius:calc(14px*var(--s));background:rgb(var(--deep-rgb) / .6);box-shadow:inset 0 0 0 calc(2px*var(--s)) rgba(255,255,255,.12)}
+.ring{position:absolute;inset:0;border-radius:calc(26px*var(--s));border:calc(3px*var(--s)) solid color-mix(in srgb,color-mix(in srgb,var(--accent) 22%,#ccc) 45%,transparent)}
+.win{position:absolute;left:8%;right:8%;top:22.5%;bottom:4.5%;display:flex;align-items:center;justify-content:center}
+.sleeve{position:absolute;left:10.5%;right:10.5%;top:24.2%;bottom:6.2%;border-radius:calc(14px*var(--s));
+  background:linear-gradient(160deg,rgb(var(--accent-rgb) / .20),rgb(var(--accent-rgb) / .05) 50%,rgba(255,255,255,.14));
+  box-shadow:inset 0 0 0 calc(2px*var(--s)) rgb(var(--accent-rgb) / .65),0 0 30px rgb(var(--accent-rgb) / .18)}
+.sleeve:before{content:'';position:absolute;left:0;right:0;top:0;height:7%;border-radius:calc(14px*var(--s)) calc(14px*var(--s)) 0 0;background:rgb(var(--accent-rgb) / .16)}
+.layer .card{box-shadow:0 20px 50px rgba(0,0,0,.5)}
+.layer .slab-label{box-shadow:0 14px 40px rgba(0,0,0,.45)}
+.anc{position:absolute;width:2px;height:2px}
+svg#lines{position:absolute;left:0;top:0;overflow:visible}
+.call{position:absolute;left:770px;width:290px}
+.call .n{font-family:var(--mono);font-weight:700;font-size:20px;letter-spacing:.18em;color:var(--accent)}
+.call .t{font-family:var(--sans);font-weight:600;font-size:34px;line-height:1.08;color:var(--text);margin-top:8px}
+#eb{position:absolute;left:0;right:0;text-align:center;top:1070px}
+#head{position:absolute;left:0;right:0;text-align:center;top:1128px;font-size:118px}
+.glare{--g:0}
+</style></head><body><div id="stage">
+<div id="bg"></div><div id="grid"></div>
+<div class="scene"><div id="rig"></div></div>
+<svg id="lines" width="1080" height="1350"></svg>
+<div id="calls"></div>
+<div id="eb" class="eyebrow" data-copy="eyebrow"></div>
+<div id="head" class="display"><span class="foiltext" id="h1" data-copy="headline"></span></div>
+<div class="grain"></div><div class="vignette"></div>
+</div>
+<script>
+window.DUR=6; window.POSTER=3.0;
+const {seg,smoother,lerp,clamp,outExpo,inExpo,premium,$,$$,css}=K;
+// COPY: eyebrow = small label above headline; headline = bottom foil line (≤ 18 chars); callouts = 4 layer labels in order label/case/card/inner (≤ 16 chars);
+// caseEyebrow/caseTitle/caseNumber = showcase-case label; cardName = name on the card
+const COPY = K.copy({
+  eyebrow:'Lumen', headline:'Built in layers',
+  callouts:['Title label','Clear case','Your artwork','Inner frame'],
+  caseEyebrow:'LUMEN · NO. 0001', caseTitle:'SHOWCASE', caseNumber:'01', cardName:'Lumen Wisp'
+});
+K.fill(COPY);
+// Swap the hero art: set an image URL here. Empty = generated theme art.
+const HERO_IMG='';
+const S=1.05, W=420*S, H=700*S;
+// layers front -> back (front shell, label, card, inner frame, back shell)
+const L=[
+ {k:'front', html:`<div class="ring" style="transform:translateZ(-4px)"></div><div class="ring" style="transform:translateZ(-8px)"></div><div class="plate shellF"><div class="glare"></div></div>`, anc:[1.0,.30]},
+ {k:'label', html:`<div class="slab-label"><div class="l1">${COPY.caseEyebrow}</div><div class="l2">${COPY.caseTitle}</div><div class="grade">${COPY.caseNumber}</div></div>`, anc:[.94,.12]},
+ {k:'card',  html:`<div class="win"><div class="card"><div class="art"${HERO_IMG?` style="--art:url(${HERO_IMG})"`:''}></div><div class="name">${COPY.cardName}</div><div class="meta"></div></div></div>`, anc:[.88,.62]},
+ {k:'sleeve',html:`<div class="sleeve"></div>`, anc:[.895,.86]},
+ {k:'back',  html:`<div class="ring" style="transform:translateZ(4px)"></div><div class="plate shellB"><div class="recess"></div></div>`, anc:[1,.5]},
+];
+const rig=$('#rig');
+L.forEach((l,i)=>{const d=document.createElement('div');d.className='layer';d.style.cssText=`--s:${S};left:${-W/2}px;top:${-H/2}px;width:${W}px;height:${H}px`;
+  d.innerHTML=l.html+`<div class="anc" style="left:${l.anc[0]*100}%;top:${l.anc[1]*100}%"></div>`; rig.appendChild(d); l.el=d; l.a=d.querySelector('.anc');});
+// callouts: label text, layer index. Column is evenly spaced.
+const C=[{t:COPY.callouts[0],li:1},{t:COPY.callouts[1],li:0},{t:COPY.callouts[2],li:2},{t:COPY.callouts[3],li:3}];
+const COL_Y=[330,480,630,780];
+let svg='';
+C.forEach((c,i)=>{
+  const d=document.createElement('div');d.className='call';d.innerHTML=`<div class="n">0${i+1}</div><div class="t">${c.t}</div>`;$('#calls').appendChild(d);c.el=d;
+  svg+=`<path class="ld" fill="none" style="stroke:rgb(var(--accent-rgb) / .75)" stroke-width="2" pathLength="1" stroke-dasharray="1 1"/><circle class="dot" r="7" style="fill:var(--accent)"/><circle class="dot2" r="16" fill="none" style="stroke:rgb(var(--accent-rgb) / .45)" stroke-width="2"/>`;
+});
+$('#lines').innerHTML=svg;
+const lds=$$('.ld'),dots=$$('.dot'),dots2=$$('.dot2');
+const GAP=112; // z gap per layer at full explode
+window.frame=function(t){
+  t=((t%DUR)+DUR)%DUR;
+  const ph=2*Math.PI*t/DUR;
+  // rig orientation: tilted axis, slow loop drift
+  const ry=-42+4*Math.sin(ph), rx=16+2*Math.sin(ph+1.3), rz=-4;
+  const em = t<3 ? smoother(seg(t,0.4,1.75)) : 1-smoother(seg(t,4.2,5.5));
+  rig.style.transform=`translateX(${(lerp(150,0,em)).toFixed(1)}px) rotateX(${rx}deg) rotateY(${ry}deg) rotateZ(${rz}deg)`;
+  // explode with tiny stagger (front leaves first), recombine back-first
+  const breathe=1+0.06*Math.sin(2*Math.PI*(t-1.6)/2.4);
+  L.forEach((l,i)=>{
+    const st=i*0.06;
+    const e = t<3 ? smoother(seg(t,0.45+st,1.6+st)) : 1-smoother(seg(t,4.25+(4-i)*0.06,5.35+(4-i)*0.06));
+    const z=(2-i)*(GAP*e*breathe+3.5);
+    l.el.style.transform=`translateZ(${z.toFixed(2)}px)`;
+  });
+  L[0].el.querySelector('.glare').style.setProperty('--g',(0.1+0.8*K.inOutSine(seg(t,0.6,3.6))).toFixed(3));
+  css('#h1',{backgroundPosition:`${(t/DUR)*220}% 0`});
+  // callouts
+  C.forEach((c,i)=>{
+    const r=c.l||(c.l=L[c.li].a); const b=r.getBoundingClientRect(); const ax=b.left+1, ay=b.top+1;
+    const y=COL_Y[i]+22, x2=750, xm=Math.max(ax+40,700);
+    const din=smoother(seg(t,1.45+i*0.08,1.95+i*0.08));
+    const dout=inExpo(seg(t,3.95+i*0.05,4.3+i*0.05));
+    const draw=din*(1-dout);
+    lds[i].setAttribute('d',`M${ax.toFixed(1)},${ay.toFixed(1)} L${xm.toFixed(1)},${y} L${x2},${y}`);
+    lds[i].setAttribute('stroke-dashoffset',(1-draw).toFixed(4));
+    lds[i].setAttribute('opacity',(1-dout).toFixed(3));
+    const ds=outExpo(seg(t,1.4+i*0.08,1.75+i*0.08))*(1-dout);
+    dots[i].setAttribute('cx',ax);dots[i].setAttribute('cy',ay);dots[i].setAttribute('r',(6*ds).toFixed(2));
+    dots2[i].setAttribute('cx',ax);dots2[i].setAttribute('cy',ay);dots2[i].setAttribute('r',(10+8*ds).toFixed(2));dots2[i].setAttribute('opacity',(ds*.8).toFixed(3));
+    const ti=outExpo(seg(t,1.75+i*0.08,2.35+i*0.08));
+    css(c.el,{top:COL_Y[i]+'px',opacity:(ti*(1-dout)).toFixed(3),transform:`translateX(${((1-ti)*28-dout*16).toFixed(1)}px)`});
+  });
+};
+frame(0);
+</script></body></html>

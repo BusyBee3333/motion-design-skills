@@ -1,0 +1,131 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link rel="stylesheet" href="../kit.css"><script src="../kit.js"></script>
+<style>
+#bg{position:absolute;inset:0;background:radial-gradient(80% 60% at 50% 46%,color-mix(in srgb,var(--primary-lo) 40%,var(--bg)) 0%,color-mix(in srgb,var(--bg2) 75%,var(--bg)) 45%,var(--bg) 80%)}
+#hub{position:absolute;inset:0;transform-origin:540px 640px}
+#wallglow{position:absolute;left:90px;top:150px;width:900px;height:980px;border-radius:60px;
+  background:radial-gradient(60% 55% at 50% 50%,color-mix(in srgb,var(--primary-hi) 55%,transparent),rgb(var(--primary-rgb) / .18) 55%,transparent 75%)}
+#shelf{position:absolute;left:0;right:0;top:0;height:1350px}
+.cell{position:absolute;width:260px;height:434px}
+.cell .slab{--s:.62}
+.cell .card .name{font-size:21px}
+.rail{position:absolute;height:3px;left:60px;right:60px;border-radius:3px;
+  background:linear-gradient(90deg,transparent,rgb(var(--accent-rgb) / .65) 20%,rgb(var(--text-rgb) / .9) 50%,rgb(var(--accent-rgb) / .65) 80%,transparent)}
+#veb{position:absolute;left:0;right:0;top:86px;text-align:center}
+#vcap{position:absolute;left:0;right:0;top:1170px;text-align:center;font-size:96px}
+#vsub{position:absolute;left:0;right:0;top:1268px;text-align:center;font-family:var(--sans);font-weight:600;font-size:30px;color:rgb(var(--text-rgb) / .74)}
+#dim{position:absolute;inset:0;background:var(--bg)}
+#flash{position:absolute;inset:0;background:radial-gradient(55% 45% at 50% 48%,color-mix(in srgb,color-mix(in srgb,var(--primary-hi) 60%,#fff) 85%,transparent),rgb(var(--primary-rgb) / .35) 45%,transparent 75%);mix-blend-mode:screen}
+.claim{position:absolute;left:0;top:0;width:1080px;height:1350px;transform-origin:540px 640px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding-bottom:70px}
+.claim .w{font-family:var(--display);font-weight:900;text-transform:uppercase;line-height:.84;font-size:262px;letter-spacing:.01em;white-space:nowrap}
+.claim .w1{color:var(--text)}
+.claim .w2{background:var(--foil);background-size:220% 100%;-webkit-background-clip:text;background-clip:text;color:transparent}
+.claim .eb{font-family:var(--mono);font-weight:700;font-size:24px;letter-spacing:.22em;color:var(--accent);margin-bottom:34px}
+.claim .sub{font-family:var(--sans);font-weight:600;font-size:34px;color:rgb(var(--text-rgb) / .78);margin-top:40px}
+.trail .eb,.trail .sub{visibility:hidden}
+</style></head><body><div id="stage">
+<div id="bg"></div>
+<div id="hub">
+  <div id="wallglow"></div>
+  <div id="shelf"></div>
+  <div id="veb" class="eyebrow" data-copy="hubEyebrow"></div>
+  <div id="vcap" class="display"><span class="foiltext" id="vcapt" data-copy="hubHeadline"></span></div>
+  <div id="vsub" data-copy="hubSub"></div>
+</div>
+<div id="dim"></div>
+<div id="flash"></div>
+<div id="claims"></div>
+<div class="grain"></div><div class="vignette"></div>
+</div>
+<script>
+window.DUR=5; window.POSTER=2.9;
+const {seg,smoother,lerp,outExpo,inExpo,premium,inOutSine,emph,accel,$,$$,css,hash,clamp}=K;
+// COPY: claimEyebrow/claimTop/claimBottom/claimSub = the fly-through headline stack (top/bottom ≤ 8 chars each);
+// hubEyebrow/hubHeadline/hubSub = captions on the destination wall; caseEyebrow/caseTitle = showcase-case labels; cardNames = 6 card names
+const COPY = K.copy({
+  claimEyebrow:'LUMEN · CREATIVE STUDIO', claimTop:'Make it', claimBottom:'move.', claimSub:'From draft to done.',
+  hubEyebrow:'The library · Every project', hubHeadline:'Every idea', hubSub:'Sketch, animate and export in one place',
+  caseEyebrow:'LUMEN LIBRARY', caseTitle:'SHOWCASE',
+  cardNames:['Lumen Wisp','Nova Fern','Tidal Moth','Ember Kite','Glass Owl','Quartz Fox']
+});
+K.fill(COPY);
+// Optional: your own art per case (6 image URLs). Empty = generated theme-coloured art.
+const CARD_ART=[];
+// ---- build the hub wall: 3 x 2 showcase cases + rails
+const shelf=$('#shelf');
+const names=COPY.cardNames;
+const cardBg=[['var(--warm)','var(--warm-lo)'],['var(--accent)','var(--accent-lo)'],['var(--pop)','color-mix(in srgb,var(--pop) 75%,var(--primary-lo))'],
+  ['var(--primary-hi)','var(--primary)'],['var(--text)','color-mix(in srgb,var(--text2) 88%,var(--bg))'],['var(--warm)','color-mix(in srgb,var(--warm-lo) 85%,var(--bg))']];
+const cells=[];
+const GX=[110,410,710], GY=[190,665];
+for(let r=0;r<2;r++)for(let c=0;c<3;c++){
+  const i=r*3+c, d=document.createElement('div'); d.className='cell';
+  d.style.left=GX[c]+'px'; d.style.top=GY[r]+'px';
+  d.innerHTML=`<div class="slab"><div class="slab-label"><div class="l1">${COPY.caseEyebrow}</div><div class="l2">${COPY.caseTitle}</div><div class="grade">0${i+1}</div></div>
+  <div class="slab-window"><div class="card" style="background:linear-gradient(170deg,${cardBg[i][0]},${cardBg[i][1]})"><div class="art" style="${CARD_ART[i]?`--art:url(${CARD_ART[i]})`:`filter:hue-rotate(${i*55}deg)`}"></div><div class="name">${names[i]}</div><div class="meta"></div></div></div><div class="glare"></div></div>`;
+  shelf.appendChild(d); cells.push(d);
+}
+for(const y of [640,1115]){const r=document.createElement('div');r.className='rail';r.style.top=y+'px';shelf.appendChild(r);}
+// ---- claim + zoom-blur trail copies
+const NT=11, claims=$('#claims'), layers=[];
+for(let i=NT;i>=0;i--){
+  const d=document.createElement('div'); d.className='claim'+(i?' trail':'');
+  d.innerHTML=`<div class="eb">${COPY.claimEyebrow}</div><div class="w w1">${COPY.claimTop}</div><div class="w w2">${COPY.claimBottom}</div><div class="sub">${COPY.claimSub}</div>`;
+  claims.appendChild(d); layers[i]=d;
+}
+// claim scale over time. Hold (4.55 -> 1.40 wrapped), fly out 1.40->2.05, away, fly in 3.75->4.55
+const OUT0=1.30,OUT1=2.00,IN0=3.70,IN1=4.55,SMAX=16;
+function claimS(t){
+  t=((t%DUR)+DUR)%DUR;
+  if(t>=OUT0&&t<OUT1) return Math.exp(Math.log(SMAX)*K.inCubic(seg(t,OUT0,OUT1)))*1.035;
+  if(t>=OUT1&&t<IN0) return SMAX;
+  if(t>=IN0&&t<IN1) return Math.exp(Math.log(SMAX)*(1-K.outQuint(seg(t,IN0,IN1))));
+  // reading hold: slow push 1 -> 1.035
+  const h=((t-IN1)+DUR)%DUR, H=(OUT0-IN1+DUR);
+  return 1+0.035*inOutSine(h/H);
+}
+window.frame=function(t){
+  t=((t%DUR)+DUR)%DUR;
+  const S=claimS(t);
+  const dl=(Math.log(claimS(t+1/120))-Math.log(claimS(t-1/120)))*60; // d(logS)/dt
+  const v=clamp(Math.abs(dl)/7);           // normalised zoom speed
+  const dir=Math.sign(dl)||1;
+  // visibility of claim: fades once it is past camera
+  const goneOut=smoother(seg(t,OUT0+0.5,OUT1)), backIn=smoother(seg(t,IN0,IN0+0.22));
+  const vis = (t>=OUT0&&t<IN0)?1-goneOut:(t>=IN0&&t<IN1)?backIn:1;
+  layers.forEach((L,i)=>{
+    if(i===0){
+      css(L,{transform:`scale(${S})`,opacity:vis,filter:`blur(${(v*3).toFixed(2)}px)`});
+    }else{
+      // trails sit behind the motion direction (smaller when flying out, larger when flying in)
+      const k=Math.pow(1-dir*0.055*v,i);
+      const o=v<0.02?0:(0.55*Math.pow(1-i/(NT+1),1.3))*v*vis;
+      css(L,{transform:`scale(${S*k})`,opacity:o,filter:`blur(${(1+i*0.9*v).toFixed(1)}px)`});
+    }
+  });
+  layers.forEach(L=>{L.querySelector('.w2').style.backgroundPosition=`${(t/DUR)*220}% 0`;});
+  // hub: blurred+dim behind the claim, settles as claim flies through
+  const settle = t<IN0 ? smoother(seg(t,OUT0+0.15,OUT1+0.55)) : 1-premium(seg(t,IN0,IN1));
+  const vs = lerp(1.16,1,outExpo(settle))*(1+0.025*inOutSine(seg(t,OUT1,IN0))); // slow push during read
+  css('#hub',{transform:`scale(${vs})`,filter:`blur(${((1-settle)*16).toFixed(2)}px)`});
+  css('#dim',{opacity:lerp(.62,0,settle)});
+  // flash bloom when type passes the lens
+  const fl=Math.exp(-Math.pow((t-1.92)/0.16,2))*0.9+Math.exp(-Math.pow((t-3.86)/0.14,2))*0.45;
+  css('#flash',{opacity:fl});
+  // hub content staggers (supporting)
+  cells.forEach((c,i)=>{
+    const d=0.04*(i%3)+0.06*Math.floor(i/3);
+    const u=t<IN0?outExpo(seg(t,OUT0+0.35+d,OUT1+0.55+d)):1-inExpo(seg(t,IN0,IN0+0.5));
+    css(c,{transform:`translateY(${(1-u)*40}px)`});
+    css(c.firstElementChild,{'--g':(inOutSine(seg(t,2.0+i*0.09,3.4+i*0.09))*1.3-.2).toFixed(3)});
+  });
+  const ci=outExpo(seg(t,1.95,2.5)), co=inExpo(seg(t,3.45,3.75));
+  css('#vcap',{opacity:ci*(1-co),transform:`translateY(${(1-ci)*50-co*30}px)`});
+  css('#vcapt',{backgroundPosition:`${(t/DUR)*220}% 0`});
+  const si=outExpo(seg(t,2.08,2.65));
+  css('#vsub',{opacity:si*(1-co),transform:`translateY(${(1-si)*30}px)`});
+  const ei=outExpo(seg(t,1.9,2.4));
+  css('#veb',{opacity:ei*(1-co)});
+};
+frame(0);
+</script></body></html>

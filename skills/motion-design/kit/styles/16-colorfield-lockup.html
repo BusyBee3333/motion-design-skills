@@ -1,0 +1,124 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link rel="stylesheet" href="../kit.css"><script src="../kit.js"></script>
+<style>
+#bg{position:absolute;inset:0;background:radial-gradient(90% 70% at 50% 45%,color-mix(in srgb,var(--bg2) 70%,var(--bg3)) 0%,var(--bg) 75%)}
+#field{position:absolute;inset:0}
+.blob{position:absolute;left:0;top:0;border-radius:50%;transform-origin:50% 50%}
+#veil{position:absolute;inset:0;background:radial-gradient(80% 65% at 50% 46%,color-mix(in srgb,color-mix(in srgb,var(--primary-hi) 40%,white) 55%,transparent),rgb(var(--accent-rgb) / .18) 55%,transparent 85%);mix-blend-mode:screen}
+#lock{position:absolute;left:0;right:0;top:0;bottom:0;transform-origin:540px 640px}
+#wm{position:absolute;left:0;right:0;top:380px;display:flex;justify-content:center;font-family:var(--display);font-weight:900;text-transform:uppercase;line-height:.84;font-size:345px;letter-spacing:.01em;color:var(--text)}
+.ch{position:relative;display:inline-block}
+.ch .ghost{visibility:hidden}
+.ch .hf{position:absolute;left:0;top:0}
+.ch .top{clip-path:inset(0 0 calc(50% - 2px) 0)}
+.ch .bot{clip-path:inset(50% 0 0 0)}
+#sheen{position:absolute;left:0;right:0;top:380px;display:flex;justify-content:center;font-family:var(--display);font-weight:900;text-transform:uppercase;line-height:.84;font-size:345px;letter-spacing:.01em;
+  color:transparent;-webkit-background-clip:text;background-clip:text;pointer-events:none}
+#bar{position:absolute;left:190px;right:190px;top:700px;height:14px;border-radius:7px;background:var(--foil);background-size:220% 100%;transform-origin:50% 50%}
+#tag{position:absolute;left:0;right:0;top:752px;text-align:center;font-family:var(--display);font-weight:800;font-size:116px;line-height:1;text-transform:uppercase;white-space:nowrap}
+#pillw{position:absolute;left:0;right:0;top:922px;display:flex;justify-content:center}
+#pill{position:relative;height:84px;border-radius:42px;overflow:hidden;background:rgb(var(--text-rgb) / .10);
+  box-shadow:inset 0 0 0 2px rgb(var(--text-rgb) / .35),0 12px 40px rgb(var(--deep-rgb) / .35);display:flex;align-items:center}
+#pill .in{position:absolute;left:0;top:0;height:84px;display:flex;align-items:center;gap:18px;padding:0 40px 0 34px;white-space:nowrap;
+  font-family:var(--mono);font-weight:700;font-size:32px;letter-spacing:.04em;color:var(--text)}
+#pill .dot{width:18px;height:18px;border-radius:50%;background:var(--accent);box-shadow:0 0 14px var(--accent)}
+#eb{position:absolute;left:0;right:0;top:318px;text-align:center}
+#foot{position:absolute;left:0;right:0;top:1060px;text-align:center;font-family:var(--sans);font-weight:600;font-size:30px;color:rgb(var(--text-rgb) / .72)}
+</style></head><body><div id="stage">
+<div id="bg"></div>
+<div id="field"></div>
+<div id="veil"></div>
+<div id="lock">
+  <div id="eb" class="eyebrow" data-copy="eyebrow"></div>
+  <div id="wm"></div>
+  <div id="sheen" data-copy="wordmark"></div>
+  <div id="bar"></div>
+  <div id="tag"><span class="foiltext" id="tagt" data-copy="tagline"></span></div>
+  <div id="pillw"><div id="pill"><div class="in"><i class="dot"></i><span data-copy="url"></span></div></div></div>
+  <div id="foot" data-copy="footer"></div>
+</div>
+<div class="grain"></div><div class="vignette"></div>
+</div>
+<script>
+// COPY: wordmark = big assembled word (<= 6 letters), eyebrow = small line above it, tagline = foil line under the bar,
+// url = text in the pill (grows to fit), footer = quiet line at the bottom.
+const COPY = K.copy({
+  wordmark:'LUMEN', eyebrow:'Sketch · Animate · Export', tagline:'Make it move.', url:'lumen.app', footer:'From draft to done.',
+});
+K.fill(COPY);
+window.DUR=6; window.POSTER=3.6;
+const {seg,smoother,lerp,outExpo,inExpo,premium,inOutSine,emph,accel,$,$$,css,clamp,hash}=K;
+// colour-field blobs: size, theme role + alpha, orbit (integer frequencies => seamless)
+const BL=[
+ {w:1300,role:'--primary',a:.95,cx:420,cy:520,ax:180,ay:140,fx:1,fy:1,ph:0},
+ {w:1100,role:'--accent',a:.70,cx:760,cy:880,ax:160,ay:180,fx:1,fy:2,ph:1.7},
+ {w:900, role:'--primary-hi',a:.85,cx:640,cy:300,ax:200,ay:120,fx:2,fy:1,ph:3.1},
+ {w:700, role:'--pop',a:.42,cx:300,cy:1050,ax:140,ay:120,fx:1,fy:1,ph:4.2},
+ {w:1000,role:'--primary-lo',a:.9, cx:860,cy:420,ax:120,ay:160,fx:1,fy:1,ph:2.3},
+];
+const field=$('#field');
+BL.forEach(b=>{const d=document.createElement('div');d.className='blob';
+  d.style.width=d.style.height=b.w+'px';field.appendChild(d);b.el=d;});
+// colours are read lazily (render.mjs injects --theme after load)
+function paintBlobs(){BL.forEach(b=>{b.el.style.background=`radial-gradient(closest-side,${K.rgba(b.role,b.a)},transparent)`;});}
+// wordmark built from parts: each glyph = top half + bottom half
+const wm=$('#wm'), parts=[];
+[...COPY.wordmark].forEach((c,i)=>{const s=document.createElement('span');s.className='ch';
+  s.innerHTML=`<span class="ghost">${c}</span><span class="hf top">${c}</span><span class="hf bot">${c}</span>`;wm.appendChild(s);
+  parts.push({top:s.querySelector('.top'),bot:s.querySelector('.bot'),i});});
+// field intensity: full takeover at loop seam, calm halo during the lockup
+function F(t){ return t<3?1-0.62*premium(seg(t,0.45,1.7)):0.38+0.62*K.inOutCubic(seg(t,4.55,5.75)); }
+window.frame=function(t){
+  t=((t%DUR)+DUR)%DUR;
+  paintBlobs();
+  const ph=2*Math.PI*t/DUR, f=F(t);
+  BL.forEach((b,i)=>{
+    const x=b.cx+b.ax*Math.sin(ph*b.fx+b.ph), y=b.cy+b.ay*Math.cos(ph*b.fy+b.ph*1.3);
+    const sc=(0.85+0.45*f)*(1+0.06*Math.sin(ph*2+i));        // breathing
+    css(b.el,{transform:`translate(${x-b.w/2}px,${y-b.w/2}px) scale(${sc})`});
+  });
+  css(field,{opacity:0.55+0.45*f});
+  css('#veil',{opacity:f*0.95});
+  // ---- lockup assembly (in) and dissolve (out)
+  const out=t>4.4; const ghosts=wm.querySelectorAll('.ghost');
+  parts.forEach(p=>{const d=p.i*0.07, solid=t>=1.45+d&&t<4.75+d;
+    ghosts[p.i].style.visibility=solid?'visible':'hidden';
+    p.top.style.visibility=p.bot.style.visibility=solid?'hidden':'visible';});
+  parts.forEach(p=>{
+    const d=p.i*0.07;
+    if(!out){
+      const u=emph(seg(t,0.75+d,1.45+d)), o=smoother(seg(t,0.75+d,1.0+d));
+      const off=(1-u)*150;
+      css(p.top,{transform:`translate(${(1-u)*-30}px,${-off}px)`,opacity:o,filter:(1-u)>.01?`blur(${((1-u)*10).toFixed(2)}px)`:'none'});
+      css(p.bot,{transform:`translate(${(1-u)*30}px,${off}px)`,opacity:o,filter:(1-u)>.01?`blur(${((1-u)*10).toFixed(2)}px)`:'none'});
+    }else{
+      const u=inExpo(seg(t,4.75+d,5.25+d)), o=1-smoother(seg(t,4.95+d,5.3+d));
+      const off=u*170;
+      css(p.top,{transform:`translate(${u*-24}px,${-off}px)`,opacity:o,filter:u>.01?`blur(${(u*12).toFixed(2)}px)`:'none'});
+      css(p.bot,{transform:`translate(${u*24}px,${off}px)`,opacity:o,filter:u>.01?`blur(${(u*12).toFixed(2)}px)`:'none'});
+    }
+  });
+  const bi=outExpo(seg(t,1.35,1.95)), bo=inExpo(seg(t,4.6,4.95));
+  css('#bar',{transform:`scaleX(${bi*(1-bo)})`,backgroundPosition:`${(t/DUR)*220}% 0`});
+  const ti=outExpo(seg(t,1.7,2.45)), to=smoother(seg(t,4.5,4.85));
+  css('#tag',{opacity:smoother(seg(t,1.7,2.1))*(1-to),letterSpacing:`${lerp(.32,.06,ti)}em`,transform:`translateY(${(1-ti)*24-to*16}px)`});
+  css('#tagt',{backgroundPosition:`${(t/DUR)*220}% 0`});
+  // pill grows from a dot into the URL
+  const pi=premium(seg(t,2.1,2.75)), po=accel(seg(t,4.45,4.8));
+  const pw=lerp(84,Math.max(84,$('#pill .in').offsetWidth),pi*(1-po)), pv=smoother(seg(t,2.0,2.2))*(1-smoother(seg(t,4.7,4.85)));
+  css('#pill',{width:pw+'px',opacity:pv});
+  css('#pill .in',{opacity:smoother(seg(t,2.4,2.8))*(1-smoother(seg(t,4.45,4.6)))});
+  const ei=outExpo(seg(t,1.25,1.9)), eo=smoother(seg(t,4.45,4.75));
+  css('#eb',{opacity:ei*(1-eo)*.95,transform:`translateY(${(1-ei)*16}px)`});
+  const fi=outExpo(seg(t,2.45,3.05));
+  css('#foot',{opacity:fi*(1-eo),transform:`translateY(${(1-fi)*18}px)`});
+  // sheen across the wordmark during the hold (tertiary)
+  const sh=seg(t,2.9,4.1);
+  css('#sheen',{backgroundImage:`linear-gradient(105deg,transparent ${sh*140-30}%,rgba(255,255,255,.0) ${sh*140-20}%,rgb(var(--accent-rgb) / .85) ${sh*140-8}%,rgba(255,255,255,.95) ${sh*140-4}%,rgb(var(--pop-rgb) / .7) ${sh*140}%,transparent ${sh*140+10}%)`,
+    opacity:sh>0&&sh<1?1:0});
+  // slow push through the hold; settles back during the takeover
+  const push=1+0.035*inOutSine(seg(t,1.0,4.9));
+  css('#lock',{transform:`scale(${push})`});
+};
+frame(0);
+</script></body></html>

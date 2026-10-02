@@ -1,0 +1,9 @@
+# 11 Perspective Fold
+**Feeling:** tidy, tactile, confident, rhythmic
+**Good for:** 3-step how-it-works sequences, onboarding steps, any 3-beat explainer with one visual per step
+**Avoid when:** steps need more than a headline and one short line, or you have more than 3-4 steps in 6 s
+**Mechanism:** three upright panels hinged at their bottom edge (transform-origin bottom, perspective-origin just above the hinge). Each folds back with rotateX 0→90° (accelerating MD3 exit curve) while an accent-coloured overlay rises with (angle/90)^1.6, so it collapses into the luminous strip; the next panel rises from the strip 90→0° (MD3 emphasized decel) with its content staggered in (70 ms). Strip and floor glow pulse with a gaussian centred on each hand-off. A 3-step progress rail under the strip fills during each hold.
+**Timing:** DUR 6 s, 2 s per panel: rise 0–0.62 s, hold 0.62–1.5 s with 2.5% push, fold 1.5–1.98 s (exit ≈ 77% of entrance), strip flash σ = 0.16 s around 0 / 2 / 4 s. POSTER 1.2.
+**Swap points:** COPY `eyebrow`, `num1`–`num3` + `tag1`–`tag3` (panel headers), `word1` (panel 1 big word, ≤ 6 letters), `lead2`/`word2`/`sub2` and `lead3`/`word3`/`sub3` (≤ 8 letters per line, sub ≤ 26 chars), `rail1`–`rail3`, `caseEyebrow`/`caseTitle`/`caseNumber`/`caseName`. Art: add `style="--art:url(...)"` on the `.art` in panel 1. Panel visuals (burst + case, check ring, box with arrows) are plain inline SVG to swap. Theme roles: --accent (fold light, strip, progress), --bg2/--bg3 (panels), foil for the headline words.
+**Adapting:** for 4 steps add a panel and set DUR to 8 (SEG stays 2.0). For 16:9 make the panels wider than tall and lower the strip; keep perspective-origin just above the hinge or the fold reads flat. In a longer piece end on the last panel's hold instead of folding it.
+**Credits:** AgentArcade panel-fold transitions (fold back into a light seam, next panel rises out of it).

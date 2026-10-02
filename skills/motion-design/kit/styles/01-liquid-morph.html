@@ -1,0 +1,90 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link rel="stylesheet" href="../kit.css"><script src="../kit.js"></script>
+<style>
+#bg{position:absolute;inset:0;background:radial-gradient(70% 55% at 50% 42%,color-mix(in srgb,var(--bg3) 75%,var(--bg)) 0%,var(--bg) 70%)}
+svg{position:absolute;left:0;top:0}
+#casewrap{position:absolute;left:330px;top:250px;width:420px;height:700px}
+#head{position:absolute;left:0;right:0;top:1030px;text-align:center;font-size:90px}
+#sub{position:absolute;left:0;right:0;top:1180px;text-align:center;font-family:var(--sans);font-weight:600;font-size:34px;color:rgb(var(--text-rgb) / .72)}
+#eb{position:absolute;left:0;right:0;top:120px;text-align:center}
+</style></head><body><div id="stage">
+<div id="bg"></div>
+<svg width="1080" height="1350" viewBox="0 0 1080 1350">
+  <defs>
+    <filter id="goo" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="26" result="b"/>
+      <feColorMatrix in="b" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 40 -18"/>
+    </filter>
+    <linearGradient id="liq" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" style="stop-color:var(--accent)"/><stop offset=".45" style="stop-color:var(--primary)"/><stop offset="1" style="stop-color:var(--primary-lo)"/>
+    </linearGradient>
+    <radialGradient id="spec" cx=".32" cy=".22" r=".5"><stop offset="0" stop-color="#fff" stop-opacity=".75"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
+    <mask id="m"><g filter="url(#goo)" id="shapes" fill="#fff">
+      <rect id="core" rx="40"/>
+      <circle class="b"/><circle class="b"/><circle class="b"/><circle class="b"/><circle class="b"/><circle class="b"/>
+    </g></mask>
+  </defs>
+  <g mask="url(#m)" id="liquid">
+    <rect id="grad" x="0" y="0" width="1080" height="1350" fill="url(#liq)"/>
+    <rect width="1080" height="1350" fill="url(#spec)" id="specr"/>
+  </g>
+</svg>
+<!-- Showcase case. Swap the hero art: <div class="art" style="--art:url(your-image.png)"> -->
+<div id="casewrap"><div class="slab" style="--s:1">
+  <div class="slab-label"><div class="l1" data-copy="caseEyebrow"></div><div class="l2" data-copy="caseTitle"></div><div class="grade" data-copy="caseNumber"></div></div>
+  <div class="slab-window"><div class="card"><div class="art"></div><div class="name" data-copy="cardName"></div><div class="meta"></div></div></div>
+  <div class="glare"></div></div></div>
+<div id="eb" class="eyebrow" data-copy="eyebrow"></div>
+<div id="head" class="display"><span class="foiltext" id="h1" data-copy="headline"></span></div>
+<div id="sub" data-copy="sub"></div>
+<div class="grain"></div><div class="vignette"></div>
+</div>
+<script>
+window.DUR=5; window.POSTER=3.0;
+// COPY: eyebrow = top label; caseEyebrow/caseTitle/caseNumber = showcase case label; cardName = name on the card; headline = big foil line; sub = support line
+const COPY = K.copy({
+  eyebrow:'Lumen',
+  caseEyebrow:'LUMEN · NO. 0001', caseTitle:'SHOWCASE', caseNumber:'01',
+  cardName:'Lumen Wisp',
+  headline:'Ideas, in motion.',
+  sub:'Sketch it once. Watch it come alive.'
+});
+K.fill(COPY);
+const {seg,smoother,lerp,outExpo,inExpo,premium,inOutSine,$,$$,css,outBack}=K;
+const blobs=$$('.b'), core=$('#core'), slab=$('#casewrap .slab'), wrap=$('#casewrap');
+// showcase-case silhouette target: 420x700 at (330,250)
+const SX=330,SY=250,SW=420,SH=700;
+window.frame=function(t){
+  t=((t%DUR)+DUR)%DUR;
+  // gather: 0 = free blobs, 1 = formed case. Loop: form 0.9->2.0, hold, melt 3.9->4.9
+  const g = t<2.0 ? premium(seg(t,0.7,2.0)) : 1-premium(seg(t,3.75,4.95));
+  // free-orbit positions (seamless: angle uses 2*pi*t/DUR)
+  const ph=2*Math.PI*t/DUR;
+  blobs.forEach((c,i)=>{
+    const a=ph*(i%2?1:-1)+i*1.047, r=170+60*Math.sin(ph*2+i);
+    const fx=540+Math.cos(a)*r*1.15, fy=600+Math.sin(a)*r*1.25;
+    // target: points inside the case silhouette
+    const tx=SX+SW*(.25+.5*(i%2)), ty=SY+SH*(.18+.32*Math.floor(i/2));
+    const rr=lerp(92+30*Math.sin(ph*3+i*2),150,g);
+    c.setAttribute('cx',lerp(fx,tx,g)); c.setAttribute('cy',lerp(fy,ty,g)); c.setAttribute('r',rr);
+  });
+  const cw=lerp(60,SW,g), ch=lerp(60,SH,g);
+  core.setAttribute('x',540-cw/2); core.setAttribute('y',600-ch/2); core.setAttribute('width',cw); core.setAttribute('height',ch);
+  core.setAttribute('rx',lerp(30,26,g));
+  // gradient drifts so the liquid feels alive
+  $('#grad').setAttribute('transform',`rotate(${Math.sin(ph)*18} 540 600)`);
+  // solid case crossfades in once silhouette is formed
+  const s = t<2.4 ? smoother(seg(t,1.75,2.35)) : 1-smoother(seg(t,3.55,3.95));
+  css(wrap,{opacity:s,transform:`scale(${lerp(.96,1,outExpo(seg(t,1.75,2.5)))})`,filter:`blur(${(1-s)*8}px)`});
+  $('#liquid').style.opacity = 1-0.85*s;
+  css(slab,{'--g':(inOutSine(seg(t,2.2,3.6))*1.3-.2).toFixed(3)});
+  // headline: rises in on formation, leaves before melt
+  const hi=outExpo(seg(t,2.05,2.7)), ho=inExpo(seg(t,3.5,3.85));
+  css('#head',{opacity:hi*(1-ho),transform:`translateY(${(1-hi)*60-ho*40}px)`});
+  css('#h1',{backgroundPosition:`${(t/DUR)*220}% 0`});
+  const si=outExpo(seg(t,2.3,2.9));
+  css('#sub',{opacity:si*(1-ho),transform:`translateY(${(1-si)*30}px)`});
+  css('#eb',{opacity:.9});
+};
+frame(0);
+</script></body></html>

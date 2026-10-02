@@ -1,0 +1,92 @@
+<!doctype html>
+<!-- film.html: assemble a full video from scene pages (any style page or your own copies of them).
+     Each scene is an <iframe> running its own deterministic frame(t); this page owns the master timeline.
+     Edit FILM below, then: node render.mjs templates/film.html --out renders  (add --audio music.wav, --theme my.css)
+     Scenes inherit the theme passed with --theme. Per-scene words go in `copy` (merged into that page's COPY). -->
+<html><head><meta charset="utf-8">
+<link rel="stylesheet" href="../kit.css">
+<script src="../kit.js"></script>
+<style>
+  #stage{background:var(--bg)}
+  .scene{position:absolute;left:0;top:0;border:0;transform-origin:0 0;will-change:transform,opacity,clip-path}
+  .caption{position:absolute;left:60px;right:60px;bottom:90px;text-align:center;font:600 34px/1.25 var(--sans);color:var(--text);
+    text-shadow:0 2px 14px rgb(var(--deep-rgb) / .8);opacity:0}
+</style></head>
+<body><div id="stage"><div class="caption" id="cap"></div><div class="grain"></div></div>
+<script>
+/* ---------------- EDIT THIS ----------------
+   scenes: played in order. dur = seconds on screen (a scene longer than its page's DUR loops it; use `from` to start mid-page).
+   in: transition INTO this scene: 'cut' | 'fade' | 'push' (up) | 'slide' (left) | 'zoom' (old flies past the lens) | 'wipe' (diagonal)
+   tin: transition length (0.35-0.6 s reads best; exits faster than entrances).
+   fit: 'cover' (fill frame, crop) or 'contain' (letterbox on --bg) when the film size differs from the page size (1080x1350).
+   captions: optional burned-in subtitles [start, end, text] on the master timeline (for sound-off feeds). */
+const FILM = {
+  scenes: [
+    { src: '../styles/03-kinetic-type-beats.html', dur: 3.0, in: 'cut' },
+    { src: '../styles/08-materializing-result.html', dur: 4.0, in: 'zoom', tin: .5 },
+    { src: '../styles/12-carousel-emphasis.html', dur: 4.0, in: 'push', tin: .45 },
+    { src: '../styles/16-colorfield-lockup.html', dur: 3.0, in: 'fade', tin: .5, from: 0.6 },
+  ],
+  captions: [],
+  page: { W: 1080, H: 1350 },
+};
+/* ------------------------------------------- */
+const W = (window.SIZE && window.SIZE.W) || 1080, H = (window.SIZE && window.SIZE.H) || 1350;
+const stage = K.$('#stage');
+let acc = 0;
+FILM.scenes.forEach((s, i) => { s.start = acc; s.tin = s.in === 'cut' || i === 0 ? 0 : (s.tin ?? .45); acc += s.dur; });
+window.DUR = acc; window.POSTER = FILM.scenes[Math.min(1, FILM.scenes.length - 1)].start + 1.5;
+const fit = s => { const sx = W / FILM.page.W, sy = H / FILM.page.H; const k = (s.fit || 'cover') === 'cover' ? Math.max(sx, sy) : Math.min(sx, sy);
+  return { k, x: (W - FILM.page.W * k) / 2, y: (H - FILM.page.H * k) / 2 }; };
+const frames = FILM.scenes.map(s => {
+  const f = document.createElement('iframe'); f.className = 'scene'; f.width = FILM.page.W; f.height = FILM.page.H;
+  const hash = s.copy ? '#copy=' + encodeURIComponent(JSON.stringify(s.copy)) : '';
+  f.src = s.src + hash; stage.insertBefore(f, K.$('#cap')); return f; });
+window.ready = Promise.all(frames.map(f => new Promise(r => f.addEventListener('load', r)))).then(async () => {
+  for (const f of frames) await f.contentWindow.document.fonts.ready; });
+// copy any theme injected into this page (render.mjs --theme) into every scene
+window.onTheme = () => { const css = [...document.querySelectorAll('style[data-theme]')].map(s => s.textContent).join('\n'); if (!css) return;
+  frames.forEach(f => { const d = f.contentDocument, st = d.createElement('style'); st.textContent = css; d.head.appendChild(st); try { f.contentWindow.onTheme && f.contentWindow.onTheme(); } catch (e) {} }); };
+
+function place(f, s, o) { // o: {op, tx, ty, sc, clip}
+  const b = fit(s), sc = o.sc ?? 1;
+  const cx = W / 2, cy = H / 2;
+  f.style.transform = `translate(${cx + (o.tx || 0)}px,${cy + (o.ty || 0)}px) scale(${b.k * sc}) translate(${-FILM.page.W / 2}px,${-FILM.page.H / 2}px)`;
+  f.style.opacity = o.op ?? 1; f.style.clipPath = o.clip || 'none'; f.style.visibility = (o.op ?? 1) > 0 ? 'visible' : 'hidden';
+}
+window.frame = function (t) {
+  t = K.clamp(t, 0, window.DUR - 1e-4);
+  FILM.scenes.forEach((s, i) => {
+    const f = frames[i], next = FILM.scenes[i + 1];
+    const end = s.start + s.dur, outT = next ? next.tin : 0;
+    const visible = t >= s.start && t < end + outT;
+    if (!visible) { place(f, s, { op: 0 }); return; }
+    const local = t - s.start + (s.from || 0);
+    try { f.contentWindow.frame(local); } catch (e) {}
+    f.style.zIndex = i;
+    let o = { op: 1 };
+    // entering
+    if (s.tin && t < s.start + s.tin) {
+      const u = K.smoother(K.seg(t, s.start, s.start + s.tin)), e = K.outExpo(K.seg(t, s.start, s.start + s.tin));
+      if (s.in === 'fade') o = { op: u };
+      if (s.in === 'push') o = { ty: (1 - e) * H };
+      if (s.in === 'slide') o = { tx: (1 - e) * W };
+      if (s.in === 'zoom') o = { op: u, sc: .92 + .08 * e };
+      if (s.in === 'wipe') o = { clip: `polygon(0 0,${u * 220}% 0,${u * 220 - 120}% 100%,0 100%)` };
+    }
+    // leaving (the next scene is entering over us)
+    if (next && t >= end) {
+      const u = K.seg(t, end, end + outT), x = K.inExpo(u);
+      if (next.in === 'push') o = { ty: -x * H * .35, op: 1 - .4 * u };
+      if (next.in === 'slide') o = { tx: -x * W * .35 };
+      if (next.in === 'zoom') o = { sc: 1 + 1.6 * x, op: 1 - K.smoother(u) };
+    }
+    place(f, s, o);
+  });
+  const cap = FILM.captions.find(c => t >= c[0] && t < c[1]);
+  const capEl = K.$('#cap'); capEl.textContent = cap ? cap[2] : '';
+  capEl.style.opacity = cap ? K.smoother(K.seg(t, cap[0], cap[0] + .2)) * (1 - K.smoother(K.seg(t, cap[1] - .15, cap[1]))) : 0;
+  capEl.style.zIndex = 99;
+};
+window.frame(0);
+</script></body></html>

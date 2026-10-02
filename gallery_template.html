@@ -1,0 +1,69 @@
+<!doctype html>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Motion Design Styles</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@800;900&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: a dark shelf. Intro + rules strip, then grouped grids of 4:5 loops with a label plate under each. Single dark look . */
+:root{
+  --ink:#100D20; --ink2:#18142F; --line:#2C2652;
+  --paper:#F5F1E9; --muted:#B4ADC9; --violet:#8B7BF0; --ice:#8EE9EE;
+  --foil:linear-gradient(105deg,#8EE9EE 0%,#B7A6FF 26%,#F09CC6 50%,#F2C46B 74%,#8EE9EE 100%);
+  --display:'Big Shoulders Display','Arial Narrow',Impact,sans-serif;
+  --sans:'Instrument Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,Menlo,monospace;
+  color-scheme:dark;
+}
+html{background:var(--ink)}
+body{background:var(--ink);color:var(--paper);font-family:var(--sans);font-size:16px;line-height:1.55;padding-inline:clamp(16px,4vw,56px);padding-block:clamp(28px,5vw,64px)}
+.wrap{max-width:1320px;margin:0 auto;display:flex;flex-direction:column;gap:clamp(40px,6vw,72px)}
+header{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:clamp(24px,4vw,64px);align-items:end}
+.eyebrow{font-family:var(--mono);font-weight:700;font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--ice)}
+h1{font-family:var(--display);font-weight:900;text-transform:uppercase;font-size:clamp(56px,9vw,124px);line-height:.84;letter-spacing:.005em;margin:.18em 0 0;text-wrap:balance}
+h1 span{background:var(--foil);-webkit-background-clip:text;background-clip:text;color:transparent}
+.lede{color:var(--muted);max-width:60ch;margin:0}
+.lede b{color:var(--paper);font-weight:600}
+.rules{border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding-block:22px;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:18px 32px}
+.rule{display:flex;gap:12px;min-width:0}
+.rule i{font-style:normal;font-family:var(--mono);font-weight:700;font-size:12px;color:var(--violet);padding-top:3px}
+.rule p{margin:0;font-size:14px;color:var(--muted)}
+.rule p b{color:var(--paper);font-weight:600}
+.grp{display:flex;flex-direction:column;gap:22px}
+h2{font-family:var(--display);font-weight:800;text-transform:uppercase;font-size:clamp(28px,3.4vw,40px);letter-spacing:.02em;margin:0;display:flex;align-items:center;gap:16px}
+h2:after{content:"";flex:1;height:1px;background:var(--line)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,270px),1fr));gap:28px 22px}
+.sty{display:flex;flex-direction:column;gap:14px;min-width:0}
+.vid{aspect-ratio:4/5;max-width:100%;border-radius:14px;overflow:hidden;background:var(--ink2);box-shadow:0 0 0 1px var(--line),0 18px 40px rgba(0,0,0,.35)}
+.vid video{width:100%;height:100%;object-fit:cover;display:block}
+.meta{display:grid;grid-template-columns:auto minmax(0,1fr);column-gap:12px;row-gap:4px}
+.num{font-family:var(--mono);font-weight:700;font-size:13px;color:var(--ice);padding-top:4px;font-variant-numeric:tabular-nums}
+.meta h3{font-family:var(--display);font-weight:800;text-transform:uppercase;font-size:26px;line-height:1;letter-spacing:.02em;margin:0;align-self:center}
+.meta p{grid-column:2;margin:0}
+.use{color:var(--paper);font-size:15px}
+.how{color:var(--muted);font-size:13.5px}
+.src{font-family:var(--mono);font-size:11px;letter-spacing:.04em;color:#8F87AD}
+footer{border-top:1px solid var(--line);padding-top:20px;color:var(--muted);font-size:13px;display:flex;flex-wrap:wrap;gap:8px 28px}
+footer a{color:var(--ice)}
+@media (max-width:760px){header{grid-template-columns:minmax(0,1fr)}}
+@media (prefers-reduced-motion:reduce){.vid video{display:none}.vid{background:var(--ink2) center/cover no-repeat}}
+</style>
+<div class="wrap">
+<header>
+  <div>
+    <div class="eyebrow">motion-design-skills · <!--COUNT--> styles</div>
+    <h1>Motion <span>styles</span></h1>
+  </div>
+  <p class="lede">One short loop per motion style, rendered from deterministic HTML in the default theme with placeholder copy for a fictional app, "Lumen". <b>Every colour, word and image is swappable.</b> Ask your agent for a video and it will plan with these by number, for example "open on 03, explain with 08 and 11, end on 16".</p>
+</header>
+<div class="rules">
+  <div class="rule"><i>A</i><p><b>The foreground carries the cut.</b> A word or object flies through while the next scene is already waiting.</p></div>
+  <div class="rule"><i>B</i><p><b>One actor stays.</b> The product, screen or logo keeps its identity from shot to shot.</p></div>
+  <div class="rule"><i>C</i><p><b>Land, then leave fast.</b> Readable landings, quick exits, no linear moves, no dead holds.</p></div>
+  <div class="rule"><i>D</i><p><b>Cause, then effect.</b> Every action visibly produces a result, like a click filling a progress bar.</p></div>
+</div>
+<!--SECTIONS-->
+<footer>
+  <span>Built on ideas from motion-video-kit, HyperFrames, Remotion skills, LottieFiles motion-design skill, LUMEN shaders, Anthropic algorithmic-art and OpenMontage.</span>
+  <span>All art is original placeholder art. MIT licensed.</span>
+</footer>
+</div>

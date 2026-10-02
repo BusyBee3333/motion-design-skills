@@ -1,0 +1,348 @@
+<!doctype html>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Motion Design Styles</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@800;900&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: a dark shelf. Intro + rules strip, then grouped grids of 4:5 loops with a label plate under each. Single dark look . */
+:root{
+  --ink:#100D20; --ink2:#18142F; --line:#2C2652;
+  --paper:#F5F1E9; --muted:#B4ADC9; --violet:#8B7BF0; --ice:#8EE9EE;
+  --foil:linear-gradient(105deg,#8EE9EE 0%,#B7A6FF 26%,#F09CC6 50%,#F2C46B 74%,#8EE9EE 100%);
+  --display:'Big Shoulders Display','Arial Narrow',Impact,sans-serif;
+  --sans:'Instrument Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,Menlo,monospace;
+  color-scheme:dark;
+}
+html{background:var(--ink)}
+body{background:var(--ink);color:var(--paper);font-family:var(--sans);font-size:16px;line-height:1.55;padding-inline:clamp(16px,4vw,56px);padding-block:clamp(28px,5vw,64px)}
+.wrap{max-width:1320px;margin:0 auto;display:flex;flex-direction:column;gap:clamp(40px,6vw,72px)}
+header{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:clamp(24px,4vw,64px);align-items:end}
+.eyebrow{font-family:var(--mono);font-weight:700;font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--ice)}
+h1{font-family:var(--display);font-weight:900;text-transform:uppercase;font-size:clamp(56px,9vw,124px);line-height:.84;letter-spacing:.005em;margin:.18em 0 0;text-wrap:balance}
+h1 span{background:var(--foil);-webkit-background-clip:text;background-clip:text;color:transparent}
+.lede{color:var(--muted);max-width:60ch;margin:0}
+.lede b{color:var(--paper);font-weight:600}
+.rules{border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding-block:22px;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:18px 32px}
+.rule{display:flex;gap:12px;min-width:0}
+.rule i{font-style:normal;font-family:var(--mono);font-weight:700;font-size:12px;color:var(--violet);padding-top:3px}
+.rule p{margin:0;font-size:14px;color:var(--muted)}
+.rule p b{color:var(--paper);font-weight:600}
+.grp{display:flex;flex-direction:column;gap:22px}
+h2{font-family:var(--display);font-weight:800;text-transform:uppercase;font-size:clamp(28px,3.4vw,40px);letter-spacing:.02em;margin:0;display:flex;align-items:center;gap:16px}
+h2:after{content:"";flex:1;height:1px;background:var(--line)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,270px),1fr));gap:28px 22px}
+.sty{display:flex;flex-direction:column;gap:14px;min-width:0}
+.vid{aspect-ratio:4/5;max-width:100%;border-radius:14px;overflow:hidden;background:var(--ink2);box-shadow:0 0 0 1px var(--line),0 18px 40px rgba(0,0,0,.35)}
+.vid video{width:100%;height:100%;object-fit:cover;display:block}
+.meta{display:grid;grid-template-columns:auto minmax(0,1fr);column-gap:12px;row-gap:4px}
+.num{font-family:var(--mono);font-weight:700;font-size:13px;color:var(--ice);padding-top:4px;font-variant-numeric:tabular-nums}
+.meta h3{font-family:var(--display);font-weight:800;text-transform:uppercase;font-size:26px;line-height:1;letter-spacing:.02em;margin:0;align-self:center}
+.meta p{grid-column:2;margin:0}
+.use{color:var(--paper);font-size:15px}
+.how{color:var(--muted);font-size:13.5px}
+.src{font-family:var(--mono);font-size:11px;letter-spacing:.04em;color:#8F87AD}
+footer{border-top:1px solid var(--line);padding-top:20px;color:var(--muted);font-size:13px;display:flex;flex-wrap:wrap;gap:8px 28px}
+footer a{color:var(--ice)}
+@media (max-width:760px){header{grid-template-columns:minmax(0,1fr)}}
+@media (prefers-reduced-motion:reduce){.vid video{display:none}.vid{background:var(--ink2) center/cover no-repeat}}
+</style>
+<div class="wrap">
+<header>
+  <div>
+    <div class="eyebrow">motion-design-skills · 28 styles</div>
+    <h1>Motion <span>styles</span></h1>
+  </div>
+  <p class="lede">One short loop per motion style, rendered from deterministic HTML in the default theme with placeholder copy for a fictional app, "Lumen". <b>Every colour, word and image is swappable.</b> Ask your agent for a video and it will plan with these by number, for example "open on 03, explain with 08 and 11, end on 16".</p>
+</header>
+<div class="rules">
+  <div class="rule"><i>A</i><p><b>The foreground carries the cut.</b> A word or object flies through while the next scene is already waiting.</p></div>
+  <div class="rule"><i>B</i><p><b>One actor stays.</b> The product, screen or logo keeps its identity from shot to shot.</p></div>
+  <div class="rule"><i>C</i><p><b>Land, then leave fast.</b> Readable landings, quick exits, no linear moves, no dead holds.</p></div>
+  <div class="rule"><i>D</i><p><b>Cause, then effect.</b> Every action visibly produces a result, like a click filling a progress bar.</p></div>
+</div>
+<section class="grp"><h2>Openers and brand moments</h2><div class="grid"><article class="sty" id="s01">
+  <div class="vid"><video src="v/01-liquid-morph.mp4" poster="v/01-liquid-morph.jpg" autoplay muted loop playsinline preload="metadata" aria-label="Liquid Morph sample loop"></video></div>
+  <div class="meta">
+    <div class="num">01</div>
+    <h3>Liquid Morph</h3>
+    <p class="use">Openers, brand stings, and turning one object into another.</p>
+    <p class="how">Liquid blobs merge into the shape of the showcase case, the real case lands, then it melts back.</p>
+    <p class="src">Feels: fluid, soft, premium, alive · From: HyperFrames Data Drift · motion-video-kit</p>
+  </div>
+</article>
+<article class="sty" id="s03">
+  <div class="vid"><video src="v/03-kinetic-type-beats.mp4" poster="v/03-kinetic-type-beats.jpg" autoplay muted loop playsinline preload="metadata" aria-label="Kinetic Type sample loop"></video></div>
+  <div class="meta">
+    <div class="num">03</div>
+    <h3>Kinetic Type</h3>
+    <p class="use">Hooks in the first 3 seconds and music-cut social edits.</p>
+    <p class="how">Huge words swap in place on the beat with pops, mask reveals and colour slams.</p>
+    <p class="src">Feels: loud, rhythmic, punchy, graphic · From: HyperFrames kinetic-type-beats · Paula Scher</p>
+  </div>
+</article>
+<article class="sty" id="s07">
+  <div class="vid"><video src="v/07-artifact-ring.mp4" poster="v/07-artifact-ring.jpg" autoplay muted loop playsinline preload="metadata" aria-label="Artifact Ring sample loop"></video></div>
+  <div class="meta">
+    <div class="num">07</div>
+    <h3>Artifact Ring</h3>
+    <p class="use">One line of copy surrounded by the things it&#x27;s about.</p>
+    <p class="how">Passes, cases and chips orbit a tilted ring while the sentence builds word by word.</p>
+    <p class="src">Feels: orbiting, dimensional, confident, airy · From: Taste via motion-video-kit</p>
+  </div>
+</article>
+<article class="sty" id="s16">
+  <div class="vid"><video src="v/16-colorfield-lockup.mp4" poster="v/16-colorfield-lockup.jpg" autoplay muted loop playsinline preload="metadata" aria-label="Colour-Field Lockup sample loop"></video></div>
+  <div class="meta">
+    <div class="num">16</div>
+    <h3>Colour-Field Lockup</h3>
+    <p class="use">End-card lockups with a wordmark and URL.</p>
+    <p class="how">A wordmark assembles from split halves over an orbiting colour field, then the field swallows it.</p>
+    <p class="src">Feels: bold, warm, premium, confident · From: Conduit · HyperFrames logo lockup</p>
+  </div>
+</article></div></section>
+<section class="grp"><h2>Explaining how it works</h2><div class="grid"><article class="sty" id="s08">
+  <div class="vid"><video src="v/08-materializing-result.mp4" poster="v/08-materializing-result.jpg" autoplay muted loop playsinline preload="metadata" aria-label="Materializing Result sample loop"></video></div>
+  <div class="meta">
+    <div class="num">08</div>
+    <h3>Materializing Result</h3>
+    <p class="use">Reveal a result or summary screen step by step without a real UI.</p>
+    <p class="how">Dots gather into a card, then the header and 3 rows wipe in with spring checkmarks; reverses by scattering.</p>
+    <p class="src">Feels: precise, satisfying, calm, premium · From: Replit Slides via motion-video-kit</p>
+  </div>
+</article>
+<article class="sty" id="s09">
+  <div class="vid"><video src="v/09-persistent-rails.mp4" poster="v/09-persistent-rails.jpg" autoplay muted loop playsinline preload="metadata" aria-label="Persistent Rails sample loop"></video></div>
+  <div class="meta">
+    <div class="num">09</div>
+    <h3>Persistent Rails</h3>
+    <p class="use">Explain two inputs flowing into one destination.</p>
+    <p class="how">Fixed glowing rails carry drops from two source chips into a liquid-filled hub while the headline swaps over 3 beats.</p>
+    <p class="src">Feels: clear, flowing, steady, confident · From: Replit Parallel Agents via motion-video-kit</p>
+  </div>
+</article>
+<article class="sty" id="s11">
+  <div class="vid"><video src="v/11-perspective-fold.mp4" poster="v/11-perspective-fold.jpg" autoplay muted loop playsinline preload="metadata" aria-label="Perspective Fold sample loop"></video></div>
+  <div class="meta">
+    <div class="num">11</div>
+    <h3>Perspective Fold</h3>
+    <p class="use">3-step how-it-works sequences.</p>
+    <p class="how">Panels hinge back into a glowing floor strip and the next panel rises out of it, with a progress rail below.</p>
+    <p class="src">Feels: tidy, tactile, confident, rhythmic · From: AgentArcade via motion-video-kit</p>
+  </div>
+</article>
+<article class="sty" id="s12">
+  <div class="vid"><video src="v/12-carousel-emphasis.mp4" poster="v/12-carousel-emphasis.jpg" autoplay muted loop playsinline preload="metadata" aria-label="Step Carousel sample loop"></video></div>
+  <div class="meta">
+    <div class="num">12</div>
+    <h3>Step Carousel</h3>
+    <p class="use">Ordered lists of 3-7 short words (steps, features).</p>
+    <p class="how">Tilted 3D word drum snaps item by item; the active word glows and the background hue follows it.</p>
+    <p class="src">Feels: energetic, ordered, bold, rhythmic · From: MadeThis via motion-video-kit</p>
+  </div>
+</article>
+<article class="sty" id="s13">
+  <div class="vid"><video src="v/13-camera-journey.mp4" poster="v/13-camera-journey.jpg" autoplay muted loop playsinline preload="metadata" aria-label="Camera Journey sample loop"></video></div>
+  <div class="meta">
+    <div class="num">13</div>
+    <h3>Camera Journey</h3>
+    <p class="use">A whole flow in one continuous shot; roadmaps and overviews.</p>
+    <p class="how">One camera glides across 4 stations on a lit rail, with zoom dips between holds.</p>
+    <p class="src">Feels: spatial, guided, smooth, cinematic · From: Replit Canvas · HyperFrames camera-journey</p>
+  </div>
+</article>
+<article class="sty" id="s17">
+  <div class="vid"><video src="v/17-swiss-grid.mp4" poster="v/17-swiss-grid.jpg" autoplay muted loop playsinline preload="metadata" aria-label="Swiss Grid sample loop"></video></div>
+  <div class="meta">
+    <div class="num">17</div>
+    <h3>Swiss Grid</h3>
+    <p class="use">Hard-cut rhythm, counts and &quot;same every time&quot; proof beats.</p>
+    <p class="how">A 4x3 Swiss grid lights one cell per beat while a giant numeral counts.</p>
+    <p class="src">Feels: precise, rhythmic, editorial, confident · From: HyperFrames Swiss Pulse · Müller-Brockmann</p>
+  </div>
+</article></div></section>
+<section class="grp"><h2>Showing the product</h2><div class="grid"><article class="sty" id="s04">
+  <div class="vid"><video src="v/04-acrylic-slab-hero.mp4" poster="v/04-acrylic-slab-hero.jpg" autoplay muted loop playsinline preload="metadata" aria-label="Showcase Hero sample loop"></video></div>
+  <div class="meta">
+    <div class="num">04</div>
+    <h3>Showcase Hero</h3>
+    <p class="use">Making one object feel physical and premium.</p>
+    <p class="how">A 3D turn on a measured curve, with glare and edge light that show the angle.</p>
+    <p class="src">Feels: premium, physical, calm, expensive · From: motion-video-kit product-hero realism</p>
+  </div>
+</article>
+<article class="sty" id="s05">
+  <div class="vid"><video src="v/05-exploded-layers.mp4" poster="v/05-exploded-layers.jpg" autoplay muted loop playsinline preload="metadata" aria-label="Exploded Layers sample loop"></video></div>
+  <div class="meta">
+    <div class="num">05</div>
+    <h3>Exploded Layers</h3>
+    <p class="use">Product anatomy: showing what something is made of.</p>
+    <p class="how">Case, label, card and inner frame separate with labelled callouts, then close up again.</p>
+    <p class="src">Feels: technical, precise, credible, premium · From: Work Louder via motion-video-kit</p>
+  </div>
+</article>
+<article class="sty" id="s06">
+  <div class="vid"><video src="v/06-stack-fan.mp4" poster="v/06-stack-fan.jpg" autoplay muted loop playsinline preload="metadata" aria-label="Stack and Fan sample loop"></video></div>
+  <div class="meta">
+    <div class="num">06</div>
+    <h3>Stack and Fan</h3>
+    <p class="use">Collection reveals and showing variety.</p>
+    <p class="how">Cards stack up, fan out as the camera pulls back, then collapse to one.</p>
+    <p class="src">Feels: satisfying, abundant, tactile, polished · From: Bevel, Tembo via motion-video-kit</p>
+  </div>
+</article>
+<article class="sty" id="s15">
+  <div class="vid"><video src="v/15-velvet-standard.mp4" poster="v/15-velvet-standard.jpg" autoplay muted loop playsinline preload="metadata" aria-label="Velvet Standard sample loop"></video></div>
+  <div class="meta">
+    <div class="num">15</div>
+    <h3>Velvet Standard</h3>
+    <p class="use">Calm luxury spotlights and expensive end cards.</p>
+    <p class="how">A showcase case sways in a hairline frame while wide-tracked captions cross.</p>
+    <p class="src">Feels: calm, luxurious, expensive, unhurried · From: HyperFrames Velvet Standard · LottieFiles premium timing</p>
+  </div>
+</article></div></section>
+<section class="grp"><h2>Transitions</h2><div class="grid"><article class="sty" id="s02">
+  <div class="vid"><video src="v/02-foreground-flythrough.mp4" poster="v/02-foreground-flythrough.jpg" autoplay muted loop playsinline preload="metadata" aria-label="Fly-Through sample loop"></video></div>
+  <div class="meta">
+    <div class="num">02</div>
+    <h3>Fly-Through</h3>
+    <p class="use">Going from a big claim to the proof in one cut.</p>
+    <p class="how">The headline speeds through the lens while the destination scene is already waiting underneath.</p>
+    <p class="src">Feels: bold, fast, cinematic, confident · From: Contra, Wonder, Bolt launch films via motion-video-kit</p>
+  </div>
+</article>
+<article class="sty" id="s10">
+  <div class="vid"><video src="v/10-logo-portal.mp4" poster="v/10-logo-portal.jpg" autoplay muted loop playsinline preload="metadata" aria-label="Logo Portal sample loop"></video></div>
+  <div class="meta">
+    <div class="num">10</div>
+    <h3>Logo Portal</h3>
+    <p class="use">Logo open or close; a brand mark that opens into the product world.</p>
+    <p class="how">Seamless Droste zoom through a pass&#x27;s punched hole into a hub scene, then into the mini pass inside it.</p>
+    <p class="src">Feels: hypnotic, playful, premium, endless · From: Bolt.new via motion-video-kit</p>
+  </div>
+</article>
+<article class="sty" id="s18">
+  <div class="vid"><video src="v/18-tile-wipe.mp4" poster="v/18-tile-wipe.jpg" autoplay muted loop playsinline preload="metadata" aria-label="Tile Wipe sample loop"></video></div>
+  <div class="meta">
+    <div class="num">18</div>
+    <h3>Tile Wipe</h3>
+    <p class="use">Chapter breaks in step-by-step explainers.</p>
+    <p class="how">A diagonal cascade of foil and colour tiles flips one chapter card to the next.</p>
+    <p class="src">Feels: punchy, graphic, rhythmic, playful · From: Pilot Protocol via motion-video-kit</p>
+  </div>
+</article></div></section>
+<section class="grp"><h2>Abstract and generative</h2><div class="grid"><article class="sty" id="s14">
+  <div class="vid"><video src="v/14-recursive-zoom.mp4" poster="v/14-recursive-zoom.jpg" autoplay muted loop playsinline preload="metadata" aria-label="Recursive Zoom sample loop"></video></div>
+  <div class="meta">
+    <div class="num">14</div>
+    <h3>Recursive Zoom</h3>
+    <p class="use">Hypnotic endless sting behind a fixed caption.</p>
+    <p class="how">A case holds a room whose pedestal holds the same case; constant exponential push, seamless.</p>
+    <p class="src">Feels: hypnotic, endless, calm, premium · From: Kevin Ngo endless-zoom loops</p>
+  </div>
+</article>
+<article class="sty" id="s19">
+  <div class="vid"><video src="v/19-liquid-chrome.mp4" poster="v/19-liquid-chrome.jpg" autoplay muted loop playsinline preload="metadata" aria-label="Liquid Chrome sample loop"></video></div>
+  <div class="meta">
+    <div class="num">19</div>
+    <h3>Liquid Chrome</h3>
+    <p class="use">Abstract hero openers behind a headline.</p>
+    <p class="how">A chrome liquid surface where a mark rises as an iridescent tube, then sinks back (WebGL2).</p>
+    <p class="src">Feels: sleek, futuristic, luxurious, hypnotic · From: LUMEN shaders (Leonxlnx/lumenshaders)</p>
+  </div>
+</article>
+<article class="sty" id="s20">
+  <div class="vid"><video src="v/20-silk-ribbons.mp4" poster="v/20-silk-ribbons.jpg" autoplay muted loop playsinline preload="metadata" aria-label="Silk Ribbons sample loop"></video></div>
+  <div class="meta">
+    <div class="num">20</div>
+    <h3>Silk Ribbons</h3>
+    <p class="use">Slow, elegant backdrops for a product.</p>
+    <p class="how">Folding silk ribbons of light drift behind a levitating showcase case (WebGL2).</p>
+    <p class="src">Feels: elegant, soft, premium, flowing · From: LUMEN shaders</p>
+  </div>
+</article>
+<article class="sty" id="s21">
+  <div class="vid"><video src="v/21-aura-bloom.mp4" poster="v/21-aura-bloom.jpg" autoplay muted loop playsinline preload="metadata" aria-label="Aura Bloom sample loop"></video></div>
+  <div class="meta">
+    <div class="num">21</div>
+    <h3>Aura Bloom</h3>
+    <p class="use">Heartbeat or &quot;it&#x27;s live&quot; pulse moments.</p>
+    <p class="how">Aura rings bloom off a pass on a lub-dub beat over a mesh gradient (WebGL2).</p>
+    <p class="src">Feels: alive, warm, rhythmic, magnetic · From: LUMEN shaders</p>
+  </div>
+</article>
+<article class="sty" id="s22">
+  <div class="vid"><video src="v/22-reeded-glass.mp4" poster="v/22-reeded-glass.jpg" autoplay muted loop playsinline preload="metadata" aria-label="Reeded Glass sample loop"></video></div>
+  <div class="meta">
+    <div class="num">22</div>
+    <h3>Reeded Glass</h3>
+    <p class="use">Premium product reveals and glass-wipe transitions.</p>
+    <p class="how">Fluted glass slides across a hero shot and reveals it sharp, with RGB dispersion (WebGL2).</p>
+    <p class="src">Feels: premium, tactile, refined, expensive · From: LUMEN shaders</p>
+  </div>
+</article>
+<article class="sty" id="s23">
+  <div class="vid"><video src="v/23-halftone-glyphs.mp4" poster="v/23-halftone-glyphs.jpg" autoplay muted loop playsinline preload="metadata" aria-label="Halftone Glyphs sample loop"></video></div>
+  <div class="meta">
+    <div class="num">23</div>
+    <h3>Halftone Glyphs</h3>
+    <p class="use">Data and &quot;how it works&quot; beats; print-meets-tech textures.</p>
+    <p class="how">An object prints itself out of a living halftone and glyph field, then dissolves back (WebGL2).</p>
+    <p class="src">Feels: technical, printed, crafted, data-rich · From: LUMEN shaders</p>
+  </div>
+</article>
+<article class="sty" id="s24">
+  <div class="vid"><video src="v/24-flow-field.mp4" poster="v/24-flow-field.jpg" autoplay muted loop playsinline preload="metadata" aria-label="Flow Field sample loop"></video></div>
+  <div class="meta">
+    <div class="num">24</div>
+    <h3>Flow Field</h3>
+    <p class="use">Calm generative openers that resolve into a mark.</p>
+    <p class="how">Thousands of drifting particle streaks gather into a glowing mark, hold, and release.</p>
+    <p class="src">Feels: calm, organic, hypnotic, generative · From: Anthropic algorithmic-art skill · awesome-creative-coding</p>
+  </div>
+</article></div></section>
+<section class="grp"><h2>Playful</h2><div class="grid"><article class="sty" id="s25">
+  <div class="vid"><video src="v/25-type-ring.mp4" poster="v/25-type-ring.jpg" autoplay muted loop playsinline preload="metadata" aria-label="Type Ring sample loop"></video></div>
+  <div class="meta">
+    <div class="num">25</div>
+    <h3>Type Ring</h3>
+    <p class="use">Editorial titles and end cards.</p>
+    <p class="how">Rings of display and mono type counter-rotate around a hero object.</p>
+    <p class="src">Feels: editorial, confident, rhythmic, crafted · From: open-design motion-frames</p>
+  </div>
+</article>
+<article class="sty" id="s26">
+  <div class="vid"><video src="v/26-squash-stretch.mp4" poster="v/26-squash-stretch.jpg" autoplay muted loop playsinline preload="metadata" aria-label="Squash and Stretch sample loop"></video></div>
+  <div class="meta">
+    <div class="num">26</div>
+    <h3>Squash and Stretch</h3>
+    <p class="use">Playful &quot;you&#x27;re in&quot; or &quot;approved&quot; beats.</p>
+    <p class="how">A pass drops, squashes, bounces and gets stamped, then jumps away.</p>
+    <p class="src">Feels: playful, bouncy, friendly, characterful · From: LottieFiles Disney principles</p>
+  </div>
+</article>
+<article class="sty" id="s27">
+  <div class="vid"><video src="v/27-pixel-resolve.mp4" poster="v/27-pixel-resolve.jpg" autoplay muted loop playsinline preload="metadata" aria-label="Pixel Resolve sample loop"></video></div>
+  <div class="meta">
+    <div class="num">27</div>
+    <h3>Pixel Resolve</h3>
+    <p class="use">Game-y hooks and loading-to-reveal moments.</p>
+    <p class="how">Shuffling pixels snap into a mosaic of the hero, a scan line resolves it crisp, then it de-rezzes.</p>
+    <p class="src">Feels: playful, retro-tech, snappy, game-like · From: awesome-creative-coding pixel genre</p>
+  </div>
+</article>
+<article class="sty" id="s28">
+  <div class="vid"><video src="v/28-foil-confetti.mp4" poster="v/28-foil-confetti.jpg" autoplay muted loop playsinline preload="metadata" aria-label="Foil Confetti sample loop"></video></div>
+  <div class="meta">
+    <div class="num">28</div>
+    <h3>Foil Confetti</h3>
+    <p class="use">Success and launch celebrations.</p>
+    <p class="how">A stamp slams onto a hero object and foil confetti bursts, flutters and gathers back.</p>
+    <p class="src">Feels: celebratory, joyful, punchy, festive · From: LottieFiles celebration recipe</p>
+  </div>
+</article></div></section>
+<footer>
+  <span>Built on ideas from motion-video-kit, HyperFrames, Remotion skills, LottieFiles motion-design skill, LUMEN shaders, Anthropic algorithmic-art and OpenMontage.</span>
+  <span>All art is original placeholder art. MIT licensed.</span>
+</footer>
+</div>

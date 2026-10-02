@@ -1,0 +1,113 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link rel="stylesheet" href="../kit.css"><script src="../kit.js"></script>
+<style>
+#bg{position:absolute;inset:0;background:radial-gradient(62% 46% at 50% 50%,color-mix(in srgb,var(--primary-lo) 38%,var(--bg)) 0%,color-mix(in srgb,var(--bg2) 75%,var(--bg)) 45%,var(--bg) 78%)}
+#halo{position:absolute;left:140px;top:400px;width:800px;height:500px;border-radius:50%;background:radial-gradient(closest-side,rgb(var(--primary-rgb) / .55),rgb(var(--primary-rgb) / 0));filter:blur(20px)}
+#belt{position:absolute;left:0;top:0}
+.it{position:absolute;left:0;top:0;will-change:transform,filter}
+.it .ticket,.it .slab{position:relative}
+.mchip{position:relative;display:inline-flex;align-items:center;gap:14px;padding:16px 26px;border-radius:999px;background:color-mix(in srgb,var(--bg2) 85%,transparent);
+  box-shadow:inset 0 0 0 2px rgb(var(--accent-rgb) / .55),0 0 30px rgb(var(--accent-rgb) / .25);font-family:var(--mono);font-weight:700;font-size:24px;letter-spacing:.14em;color:var(--text);white-space:nowrap}
+.mchip i{width:14px;height:14px;border-radius:50%;background:var(--accent);box-shadow:0 0 12px var(--accent)}
+#txt{position:absolute;left:0;right:0;top:478px;text-align:center;font-size:148px;line-height:.86}
+#txt .ln{display:block;white-space:nowrap}
+#txt .w{display:inline-block;margin:0 .06em}
+#txt{text-shadow:none}
+#eb{position:absolute;left:0;right:0;top:150px;text-align:center}
+#sub{position:absolute;left:120px;right:120px;top:1170px;text-align:center;font-family:var(--sans);font-weight:600;font-size:34px;line-height:1.3;color:rgb(var(--text-rgb) / .78)}
+#front,#back{position:absolute;inset:0}
+</style></head><body><div id="stage">
+<div id="bg"></div><div id="halo"></div>
+<svg id="belt" width="1080" height="1350"><defs>
+  <linearGradient id="bg1" x1="0" x2="1"><stop offset="0" style="stop-color:var(--accent)" stop-opacity=".0"/><stop offset=".5" style="stop-color:var(--accent)" stop-opacity=".55"/><stop offset="1" style="stop-color:var(--primary-hi)" stop-opacity=".0"/></linearGradient>
+  <filter id="gl"><feGaussianBlur stdDeviation="6"/></filter></defs>
+  <g id="beltg">
+   <ellipse id="e0" fill="none" style="stroke:rgb(var(--accent-rgb) / .18)" stroke-width="2"/>
+   <ellipse id="e1" fill="none" stroke="url(#bg1)" stroke-width="10" filter="url(#gl)"/>
+   <ellipse id="e2" fill="none" style="stroke:color-mix(in srgb,var(--primary-hi) 12%,transparent)" stroke-width="1.5" stroke-dasharray="2 14"/>
+  </g>
+</svg>
+<div id="back"></div>
+<div id="eb" class="eyebrow" data-copy="eyebrow"></div>
+<div id="txt" class="display">
+  <span class="ln"><span class="w w1" data-copy="w1"></span><span class="w w2 foiltext" data-copy="w2"></span></span>
+  <span class="ln"><span class="w w3" data-copy="w3"></span><span class="w w4 foiltext" data-copy="w4"></span></span>
+</div>
+<div id="front"></div>
+<div id="sub" data-copy="sub"></div>
+<div class="grain"></div><div class="vignette"></div>
+</div>
+<script>
+window.DUR=5; window.POSTER=2.4;
+const {seg,smoother,lerp,outExpo,inExpo,premium,emph,$,$$,css,hash}=K;
+// COPY: eyebrow = top label; w1..w4 = the 4 headline words, two per line (w2/w4 in foil, ≤ 6 chars each reads best); sub = support line;
+// passEyebrow/passTitle/passStub = the orbiting pass; caseEyebrow/caseTitle/caseNumber = mini showcase cases; chips = 2 pill labels
+const COPY = K.copy({
+  eyebrow:'Lumen', w1:'One', w2:'idea.', w3:'Many', w4:'moves.', sub:'Sketch it once, then watch it travel.',
+  passEyebrow:'LUMEN PASS', passTitle:'Pass', passStub:'1',
+  caseEyebrow:'LUMEN', caseTitle:'SHOWCASE', caseNumber:'01',
+  chips:['EVERY IDEA','IN MOTION']
+});
+K.fill(COPY);
+// Optional: your own art for the mini cases (image URL). Empty = generated theme art.
+const HERO_IMG='';
+// 10 items, pattern period 5 → ring turns 180° per loop (seamless)
+const N=10, kinds=['ticket','slab','chip:0','slab2','chip:1'];
+const items=[];
+for(let i=0;i<N;i++){
+  const k=kinds[i%5], el=document.createElement('div'); el.className='it';
+  if(k.startsWith('ticket')) el.innerHTML=`<div class="ticket" style="--s:.5"><div class="t1">${COPY.passEyebrow}</div><div class="t2">${COPY.passTitle}</div><div class="perf"></div><div class="stub">${COPY.passStub}</div></div>`;
+  else if(k.startsWith('slab')) el.innerHTML=`<div class="slab" style="--s:.36"><div class="slab-label"><div class="l1">${COPY.caseEyebrow}</div><div class="l2">${COPY.caseTitle}</div><div class="grade">${COPY.caseNumber}</div></div><div class="slab-window"><div class="card" style="${k==='slab2'?'background:linear-gradient(170deg,var(--accent),var(--accent-lo))':''}"><div class="art"${HERO_IMG?` style="--art:url(${HERO_IMG})"`:''}></div><div class="meta"></div></div></div><div class="glare"></div></div>`;
+  else el.innerHTML=`<div class="mchip"><i></i>${COPY.chips[+k.split(':')[1]]}</div>`;
+  const w = k.startsWith('ticket')?260:k.startsWith('slab')?151:0;   // chips are measured on first frame
+  const h = k.startsWith('ticket')?110:k.startsWith('slab')?252:58;
+  items.push({el,w,h,i,chip:k.startsWith('chip')});
+}
+const back=$('#back'), front=$('#front');
+const CX=540, CY=660, RX=480, RY=310, TILT=-9*Math.PI/180;
+['#e0','#e1','#e2'].forEach(s=>{const e=$(s); e.setAttribute('cx',CX);e.setAttribute('cy',CY);e.setAttribute('rx',RX);e.setAttribute('ry',RY);e.setAttribute('transform',`rotate(${TILT*180/Math.PI} ${CX} ${CY})`);});
+const words=$$('#txt .w');
+window.frame=function(t){
+  t=((t%DUR)+DUR)%DUR;
+  const ph=t/DUR;
+  // ring spin: 180° per loop, slight breathing in speed (periodic so seamless)
+  const spin = Math.PI*ph + 0.06*Math.sin(2*Math.PI*ph);
+  const ct=Math.cos(TILT), st=Math.sin(TILT);
+  items.forEach(o=>{
+    const a = o.i*2*Math.PI/N + spin;
+    const ex=Math.cos(a)*RX, ey=Math.sin(a)*RY;           // ellipse coords
+    const x=CX+ex*ct-ey*st, y=CY+ex*st+ey*ct;
+    const z=Math.sin(a);                                     // +1 front (bottom), -1 back
+    const d=(z+1)/2;
+    const sc=lerp(.5,1.24,Math.pow(d,1.2));
+    const bl=Math.pow(1-d,1.6)*7;
+    const br=lerp(.42,1,d);
+    // bob + tangent lean for 2.5D
+    const bob=Math.sin(3*a)*7;
+    const lean=-Math.cos(a)*10*(0.4+0.6*d) + TILT*180/Math.PI*0.5;
+    const ry=Math.cos(a)*-28;
+    const par = z>0.38?front:back; if(o.el.parentNode!==par) par.appendChild(o.el);
+    if(o.chip&&!o.w) o.w=o.el.offsetWidth;
+    o.el.style.zIndex=Math.round(d*100);
+    css(o.el,{transform:`translate(${x-o.w/2}px,${y-o.h/2+bob}px) perspective(900px) rotateY(${ry}deg) rotate(${lean}deg) scale(${sc})`,
+      filter:`blur(${bl.toFixed(2)}px) brightness(${br.toFixed(3)})`, opacity:lerp(.55,1,d).toFixed(3)});
+    const g=o.el.querySelector('.slab'); if(g) g.style.setProperty('--g',(((a/(2*Math.PI)*2)%1+1)%1*1.6-.3).toFixed(3));
+  });
+  // headline builds word by word, leaves upward before loop point
+  const out=inExpo(seg(t,4.35,4.75));
+  words.forEach((w,i)=>{
+    const a=.25+i*.32, u=smoother(seg(t,a,a+.55)), e=emph(seg(t,a,a+.55));
+    css(w,{opacity:(u*(1-out)).toFixed(3),transform:`translateY(${((1-e)*70-out*46).toFixed(1)}px) scale(${lerp(.92,1,e).toFixed(4)})`,filter:`blur(${((1-u)*10+out*6).toFixed(2)}px) drop-shadow(0 8px 28px rgb(var(--bg-rgb) / .85))`});
+  });
+  // slow push on the whole sentence so the hold is never static
+  css('#txt',{transform:`scale(${(1+0.035*smoother(seg(t,0.3,4.4))).toFixed(4)})`});
+  $$('.foiltext').forEach(f=>f.style.backgroundPosition=`${(ph*220).toFixed(1)}% 0`);
+  const si=outExpo(seg(t,1.55,2.15)), so=inExpo(seg(t,4.25,4.6));
+  css('#sub',{opacity:(si*(1-so)).toFixed(3),transform:`translateY(${((1-si)*24-so*16).toFixed(1)}px)`});
+  css('#eb',{opacity:(.9*smoother(seg(t,0,0.5))*(1-inExpo(seg(t,4.4,4.8)))+0).toFixed(3)});
+  // belt shimmer: rotate gradient phase via dash offset
+  $('#e2').setAttribute('stroke-dashoffset',(-ph*16*12).toFixed(1));
+  css('#halo',{opacity:(.75+.25*Math.sin(2*Math.PI*ph)).toFixed(3)});
+};
+frame(0);
+</script></body></html>

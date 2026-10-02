@@ -1,0 +1,146 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link rel="stylesheet" href="../kit.css"><script src="../kit.js"></script>
+<style>
+#gl{position:absolute;left:0;top:0;width:1080px;height:1350px}
+#eb{position:absolute;left:0;right:0;top:104px;text-align:center}
+#head{position:absolute;left:0;right:0;top:1010px;text-align:center;font-size:150px;letter-spacing:.01em}
+#sub{position:absolute;left:0;right:0;top:1186px;text-align:center;font-family:var(--sans);font-weight:600;font-size:36px;color:rgb(var(--text-rgb) / .80)}
+#head .foiltext{filter:drop-shadow(0 6px 30px rgb(var(--bg-rgb) / .6))}
+</style></head><body><div id="stage">
+<canvas id="gl" width="2160" height="2700"></canvas>
+<div id="eb" class="eyebrow" data-copy="eyebrow"></div>
+<div id="head" class="display"><span class="foiltext" id="h1" data-copy="headline"></span></div>
+<div id="sub" data-copy="sub"></div>
+<div class="grain"></div><div class="vignette"></div>
+</div>
+<script>
+// COPY: eyebrow = small top line, headline = foil headline (<= 14 characters), sub = one line under it.
+const COPY = K.copy({ eyebrow:'Lumen · Ideas, in motion', headline:'Make it move.', sub:'From draft to done.' });
+K.fill(COPY);
+// Liquid chrome: heightfield = looping fbm (noise sampled on a closed circle, after Leonxlnx/lumenshaders)
+// + an analytic tube (signed-distance field of an infinity lemniscate, computed once on the CPU, uploaded as RG16F).
+// MARK HOOK: to use your own mark, replace `pts` with points along your logo outline (two lobes are smooth-unioned).
+window.DUR=5; window.POSTER=2.6;
+const {seg,smoother,outExpo,inExpo,premium,css,$}=K;
+const W=1080,H=1350, SW=540, SH=675; // SDF grid at half res
+// --- infinity mark SDF (CPU, once) ---
+const CX=540, CY=560, A=420;
+const pts=[]; for(let i=0;i<900;i++){const a=i/900*Math.PI*2, s=Math.sin(a), d=1+s*s; pts.push([CX+A*Math.cos(a)/d, CY+A*Math.sin(a)*Math.cos(a)/d*1.05]);}
+const sdf=new Float32Array(SW*SH*2);
+const lob=[pts.filter(p=>p[0]<=CX+2),pts.filter(p=>p[0]>=CX-2)];
+for(let y=0;y<SH;y++)for(let x=0;x<SW;x++){
+  const px=x*2+1, py=y*2+1;
+  for(let k=0;k<2;k++){ let m=1e9; for(const p of lob[k]){const dx=px-p[0],dy=py-p[1],d=dx*dx+dy*dy; if(d<m)m=d;}
+    sdf[((SH-1-y)*SW+x)*2+k]=Math.min(Math.sqrt(m),400)/400; }
+}
+const FS=`#version 300 es
+precision highp float;
+uniform vec2 R; uniform float ph, emb, lightA; uniform sampler2D sd;
+uniform vec3 INK, VIO, VLO, ICE, WARM, FA, FB, FC, FD;   // theme roles, set from JS
+out vec4 o;
+#define TAU 6.28318530718
+float h21(vec2 p){vec3 q=fract(vec3(p.xyx)*.1031);q+=dot(q,q.yzx+33.33);return fract((q.x+q.y)*q.z);}
+float vn(vec2 p){vec2 i=floor(p),f=fract(p),u=f*f*(3.-2.*f);
+ return mix(mix(h21(i),h21(i+vec2(1,0)),u.x),mix(h21(i+vec2(0,1)),h21(i+vec2(1,1)),u.x),u.y);}
+mat2 rot(float a){float c=cos(a),s=sin(a);return mat2(c,-s,s,c);}
+float fbm(vec2 p){float v=0.,a=.5;for(int i=0;i<4;i++){v+=a*vn(p);p=rot(.62)*p*2.03+11.7;a*=.5;}return v/.9375;}
+vec2 LT(float k){return vec2(cos(TAU*ph*k),sin(TAU*ph*k));}
+vec3 foil(float t){t=fract(t)*4.;
+ vec3 a=FA,b=FB,c=FC,d=FD;
+ return t<1.?mix(a,b,smoothstep(0.,1.,t)):t<2.?mix(b,c,smoothstep(1.,2.,t)):t<3.?mix(c,d,smoothstep(2.,3.,t)):mix(d,a,smoothstep(3.,4.,t));}
+float dist(vec2 uv){vec2 d=texture(sd,uv).rg*400.; float k=26.; float hh=clamp(.5+.5*(d.y-d.x)/k,0.,1.); return mix(d.y,d.x,hh)-k*hh*(1.-hh);}
+float tube(vec2 uv){float d=dist(uv); float r=58.; float x=clamp(d/r,0.,1.); return sqrt(1.-x*x);}
+float liquid(vec2 p, vec2 w){return fbm((p+w)*.62+vec2(3.1,7.7)+LT(1.)*.5);}
+float H(vec2 uv, vec2 w){
+  vec2 p=(uv-.5)*vec2(R.x/R.y,1.)*3.2; p.x*=.55;
+  float d=dist(uv);
+  float l=liquid(p,w);
+  // liquid parts around the mark as it rises (meniscus)
+  float halo=smoothstep(80.,44.,d);
+  l=mix(l, l*.55+.1, halo*emb);
+  float t=tube(uv);
+  return l + emb*t*.06 + emb*halo*.004;
+}
+vec3 env(vec3 r){
+  r.xy=rot(lightA)*r.xy;
+  float y=r.y, x=r.x;
+  vec3 c=mix(INK*.35, INK*1.1, smoothstep(-.6,.3,y));
+  c+=VLO*.75*smoothstep(.2,.8,y);
+  c+=VIO*.9*smoothstep(.1,0.,abs(y-.30+.1*x))*.6;
+  c+=WARM*1.7*smoothstep(.045,0.,abs(y-.55+.18*x));           // key softbox strip
+  c+=WARM*.35*smoothstep(.14,0.,abs(y-.55+.18*x));
+  c+=ICE*1.2*smoothstep(.05,0.,abs(x-.66-.1*y));               // ice rim strip
+  c+=ICE*.25*smoothstep(.1,0.,abs(x-.66-.1*y));
+  c+=VIO*.45*smoothstep(.4,.95,-x);
+  return c;
+}
+void main(){
+  vec2 uv=gl_FragCoord.xy/R;
+  vec2 p=(uv-.5)*vec2(R.x/R.y,1.)*3.2; p.x*=.55;
+  vec2 w=vec2(fbm(p*.5+LT(1.)*.8)-.5, fbm(p*.5+7.31-LT(1.)*.8)-.5)*1.9;
+  vec2 e=vec2(3./R.x,0.), f=vec2(0.,3./R.y);
+  float h=H(uv,w), hx=H(uv+e,w), hy=H(uv+f,w);
+  float relief=1100./1.5;
+  vec3 n=normalize(vec3(-(hx-h)*relief,-(hy-h)*relief,1.));
+  vec3 r=reflect(vec3(0,0,-1),n);
+  vec3 col=env(r);
+  float fres=pow(1.-max(n.z,0.),2.2);
+  // foil iridescence: thin-film-ish, strongest on the mark, faint on the liquid
+  float t=tube(uv)*emb;
+  vec3 ir=foil(n.x*.55+n.y*.35+h*.6+ph);
+  float on=smoothstep(.0,.25,t);
+  vec3 tc=env(r)*mix(vec3(1.),ir,.8)*1.35+ir*(.26+.6*fres);
+  col=mix(col, tc, on);
+  col+=ir*fres*.22*(1.-on);
+  // specular kick
+  vec3 L=normalize(vec3(rot(lightA)*vec2(-.5,.8),.7));
+  col+=WARM*pow(max(dot(n,normalize(L+vec3(0,0,1))),0.),140.)*1.4;
+  // ground: darken toward the type area
+  float v=smoothstep(.34,.04,uv.y);
+  col=mix(col, INK*.9, v*.84);
+  col=mix(col, INK, smoothstep(.9,1.02,uv.y)*.5);
+  // filmic-ish tone
+  col=col/(1.+col*.35);
+  o=vec4(pow(col,vec3(.98)),1.);
+}`;
+const cv=$('#gl'), gl=cv.getContext('webgl2',{preserveDrawingBuffer:true,antialias:false});
+function sh(t,s){const x=gl.createShader(t);gl.shaderSource(x,s);gl.compileShader(x);if(!gl.getShaderParameter(x,gl.COMPILE_STATUS))console.error(gl.getShaderInfoLog(x));return x;}
+const pr=gl.createProgram();gl.attachShader(pr,sh(gl.VERTEX_SHADER,`#version 300 es
+in vec2 a;void main(){gl_Position=vec4(a,0,1);}`));gl.attachShader(pr,sh(gl.FRAGMENT_SHADER,FS));gl.linkProgram(pr);
+if(!gl.getProgramParameter(pr,gl.LINK_STATUS))console.error(gl.getProgramInfoLog(pr));
+gl.useProgram(pr);const bf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,bf);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);
+gl.enableVertexAttribArray(0);gl.vertexAttribPointer(0,2,gl.FLOAT,false,0,0);
+const tx=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,tx);
+const h16=new Uint16Array(sdf.length);{const f=new Float32Array(1),i32=new Int32Array(f.buffer);
+ for(let i=0;i<sdf.length;i++){f[0]=sdf[i];const x=i32[0];const e=((x>>23)&255)-127+15;const m=(x>>13)&1023;h16[i]=e<=0?0:((e<<10)|m);}}
+gl.texImage2D(gl.TEXTURE_2D,0,gl.RG16F,SW,SH,0,gl.RG,gl.HALF_FLOAT,h16);
+gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
+gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+const U=n=>gl.getUniformLocation(pr,n);
+gl.uniform2f(U('R'),W*2,H*2);gl.uniform1i(U('sd'),0);gl.viewport(0,0,W*2,H*2);
+// Theme -> shader colours. Read LAZILY (every frame) because render.mjs injects --theme after load.
+// Foil stops follow --foil in theme.css: accent, primary-hi lifted toward white, pop, warm.
+const THEME={INK:'--bg',VIO:'--primary',VLO:'--primary-lo',VHI:'--primary-hi',ICE:'--accent',WARM:'--text',ROSE:'--pop',FA:'--accent',FC:'--pop',FD:'--warm'};
+function applyTheme(gl,U){
+  for(const k in THEME){const l=U(k); if(l) gl.uniform3fv(l,K.color(THEME[k]));}
+  const l=U('FB'); if(l) gl.uniform3fv(l,K.color('--primary-hi').map(v=>v+(1-v)*.38));
+}
+window.frame=function(t){
+  t=((t%DUR)+DUR)%DUR;
+  applyTheme(gl,U);
+  const ph=t/DUR;
+  // the mark rises out of the chrome 0.35-1.6 s, holds, sinks back 3.7-4.85 s
+  const emb = t<2.5 ? premium(seg(t,0.35,1.6)) : 1-K.inOutCubic(seg(t,3.7,4.85));
+  const lightA = -0.35+0.45*Math.sin(2*Math.PI*ph);
+  gl.uniform1f(U('ph'),ph);gl.uniform1f(U('emb'),emb);gl.uniform1f(U('lightA'),lightA);
+  gl.drawArrays(gl.TRIANGLES,0,3);
+  // type: lands after the mark, leaves before it sinks
+  const hi=outExpo(seg(t,1.05,1.8)), ho=inExpo(seg(t,3.45,3.95));
+  css('#head',{opacity:hi*(1-ho),transform:`translateY(${(1-hi)*50-ho*30}px) scale(${1+0.025*seg(t,1.05,3.95)})`,filter:`blur(${(1-hi)*8+ho*6}px)`});
+  css('#h1',{backgroundPosition:`${ph*220}% 0`});
+  const si=outExpo(seg(t,1.3,2.0));
+  css('#sub',{opacity:si*(1-ho),transform:`translateY(${(1-si)*24}px)`});
+  css('#eb',{opacity:.55+.35*Math.sin(Math.PI*ph)**2});
+};
+frame(0);
+</script></body></html>

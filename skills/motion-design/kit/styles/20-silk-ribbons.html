@@ -1,0 +1,129 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link rel="stylesheet" href="../kit.css"><script src="../kit.js"></script>
+<style>
+canvas{position:absolute;left:0;top:0;width:1080px;height:1350px}
+#front{mix-blend-mode:screen}
+.scene{position:absolute;inset:0;perspective:2200px;perspective-origin:540px 560px}
+#sw{position:absolute;left:305px;top:150px;width:470px;height:784px;transform-style:preserve-3d}
+#shadow{position:absolute;left:330px;top:900px;width:420px;height:70px;border-radius:50%;background:radial-gradient(closest-side,rgb(var(--deep-rgb) / .7),transparent);filter:blur(8px)}
+#eb{position:absolute;left:0;right:0;top:78px;text-align:center}
+.cap{position:absolute;left:0;right:0;top:1010px;text-align:center;font-size:98px;white-space:nowrap}
+.sub{position:absolute;left:0;right:0;top:1150px;text-align:center;font-family:var(--sans);font-weight:600;font-size:34px;color:rgb(var(--text-rgb) / .82)}
+</style></head><body><div id="stage">
+<canvas id="back" width="2160" height="2700"></canvas>
+<div id="shadow"></div>
+<div class="scene"><div id="sw"><div class="slab" style="--s:1.12">
+  <div class="slab-label"><div class="l1" data-copy="caseEyebrow"></div><div class="l2" data-copy="caseTitle"></div><div class="grade" data-copy="caseNumber"></div></div>
+  <!-- HERO ART: drop in your own image with style="--art:url(assets/hero.png)" on .art -->
+  <div class="slab-window"><div class="card"><div class="art"></div><div class="name" data-copy="cardName"></div><div class="meta"></div></div></div>
+  <div class="glare"></div></div></div></div>
+<canvas id="front" width="1080" height="1350"></canvas>
+<div id="eb" class="eyebrow" data-copy="eyebrow"></div>
+<div class="cap display" id="c1"><span class="foiltext" data-copy="captionA"></span></div>
+<div class="sub" id="s1" data-copy="subA"></div>
+<div class="cap display" id="c2"><span class="foiltext" data-copy="captionB"></span></div>
+<div class="sub" id="s2" data-copy="subB"></div>
+<div class="grain"></div><div class="vignette"></div>
+</div>
+<script>
+// COPY: eyebrow = small top line, caseEyebrow/caseTitle/caseNumber = showcase case label, cardName = name on the card,
+// captionA/subA = first 3 s beat, captionB/subB = second 3 s beat (captions <= 22 characters).
+const COPY = K.copy({
+  eyebrow:'Lumen', caseEyebrow:'LUMEN · NO. 0020', caseTitle:'SHOWCASE', caseNumber:'01', cardName:'Silk Comet',
+  captionA:'Ideas, in motion', subA:'Sketch, animate, export.',
+  captionB:'From draft to done.', subB:'Every project lands in your library.',
+});
+K.fill(COPY);
+// Silk ribbons of light: each ribbon is a centreline built from sines with integer loop cycles (seamless),
+// width modulated by a travelling twist so the sheet folds edge-on; additive on ink. Idea after Leonxlnx/lumenshaders "Silk".
+window.DUR=6; window.POSTER=2.2;
+const {seg,smoother,outExpo,inExpo,premium,css,$,$$}=K;
+const FS=`#version 300 es
+precision highp float;
+uniform vec2 R; uniform float ph; uniform float front;
+uniform vec3 INK, VIO, VHI, ICE, WARM, FA, FB, FC, FD;   // theme roles, set from JS
+out vec4 o;
+#define TAU 6.28318530718
+vec3 foil(float t){t=fract(t)*4.;
+ vec3 a=FA,b=FB,c=FC,d=FD;
+ return t<1.?mix(a,b,smoothstep(0.,1.,t)):t<2.?mix(b,c,smoothstep(1.,2.,t)):t<3.?mix(c,d,smoothstep(2.,3.,t)):mix(d,a,smoothstep(3.,4.,t));}
+// one ribbon: returns premultiplied light
+vec3 ribbon(vec2 p, float id, vec3 tint, float amp, float wid, float yo, float foilAmt){
+  float P=TAU*ph;
+  float x=p.x;
+  float c=yo + amp*(.55*sin(x*1.1+id*2.3+P) + .3*sin(x*2.3-id*1.7-P*2.) + .15*sin(x*3.7+id*5.1+P));
+  float dc=amp*(.55*1.1*cos(x*1.1+id*2.3+P) + .3*2.3*cos(x*2.3-id*1.7-P*2.) + .15*3.7*cos(x*3.7+id*5.1+P));
+  float tw=x*1.35+id*1.9 - P*(id<1.5?1.:2.);       // travelling twist
+  float face=cos(tw);
+  float w=wid*(.12+.88*abs(face));
+  float d=(p.y-c)/sqrt(1.+dc*dc);                    // perpendicular-ish distance
+  float v=d/w;                                       // -1..1 across the sheet
+  float inside=smoothstep(1.,.86,abs(v));
+  // silk sheen: light catches the fold where the sheet turns
+  float sheen=.18+.82*pow(1.-abs(face),2.2);
+  float spec=pow(max(0.,sin(tw+v*face*1.4)),6.);
+  float threads=.9+.1*cos(v*40.);
+  float edge=exp(-pow((abs(v)-.93)*14.,2.))*(.35+.65*abs(face));
+  vec3 base=mix(tint, foil(id*.27+x*.12+ph+v*.08), foilAmt);
+  vec3 col=base*(sheen*threads*inside*1.15 + edge*1.1) + WARM*spec*inside*.7;
+  col+=base*exp(-d*d/(wid*wid*8.))*.16;              // soft bloom around the ribbon
+  return col;
+}
+void main(){
+  vec2 uv=gl_FragCoord.xy/R;
+  vec2 p=(uv-.5)*vec2(R.x/R.y,1.)*2.4;
+  float a=-.42; p=mat2(cos(a),-sin(a),sin(a),cos(a))*p;
+  vec3 col=vec3(0.);
+  if(front<.5){
+    vec2 q=(uv-vec2(.5,.62));
+    col=INK + VIO*.16*exp(-dot(q,q)*5.) ;
+    col+=ribbon(p,0.,VIO*1.25,.42,.20,.55,.25)*.9;
+    col+=ribbon(p,1.,ICE,.36,.12,.18,.35)*.85;
+    col+=ribbon(p,2.,VHI,.5,.24,-.25,.55)*.75;
+    col+=ribbon(p,3.,ICE*.9,.3,.08,-.62,.3)*.8;
+    col+=ribbon(p*vec2(.8,1.)+vec2(.7,0.),4.,VIO,.45,.30,-.95,.4)*.55;
+    col=col/(1.+col*.35);
+    col=mix(col, INK*.8, .72*exp(-pow((uv.y-.19)/.1,2.)));
+  } else {
+    col=ribbon(p+vec2(.3,0.),5.,WARM*.9,.28,.07,-.48,.7)*.9;
+    col*=smoothstep(.3,.42,uv.y)*smoothstep(.75,.5,uv.y);
+  }
+  o=vec4(col,1.);
+}`;
+function mkGL(cv,fs){
+  const gl=cv.getContext('webgl2',{preserveDrawingBuffer:true,antialias:false});
+  const sh=(t,s)=>{const x=gl.createShader(t);gl.shaderSource(x,s);gl.compileShader(x);if(!gl.getShaderParameter(x,gl.COMPILE_STATUS))console.error(gl.getShaderInfoLog(x));return x;};
+  const pr=gl.createProgram();gl.attachShader(pr,sh(gl.VERTEX_SHADER,'#version 300 es\nin vec2 a;void main(){gl_Position=vec4(a,0,1);}'));gl.attachShader(pr,sh(gl.FRAGMENT_SHADER,fs));gl.linkProgram(pr);gl.useProgram(pr);
+  const bf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,bf);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(0);gl.vertexAttribPointer(0,2,gl.FLOAT,false,0,0);gl.viewport(0,0,cv.width,cv.height);
+  const U=n=>gl.getUniformLocation(pr,n); gl.uniform2f(U('R'),cv.width,cv.height);
+  return {gl,U,draw(){gl.drawArrays(gl.TRIANGLES,0,3);}};
+}
+const B=mkGL($('#back'),FS), F=mkGL($('#front'),FS);
+B.gl.uniform1f(B.U('front'),0); F.gl.uniform1f(F.U('front'),1);
+// Theme -> shader colours. Read LAZILY (every frame) because render.mjs injects --theme after load.
+// Foil stops follow --foil in theme.css: accent, primary-hi lifted toward white, pop, warm.
+const THEME={INK:'--bg',VIO:'--primary',VLO:'--primary-lo',VHI:'--primary-hi',ICE:'--accent',WARM:'--text',ROSE:'--pop',FA:'--accent',FC:'--pop',FD:'--warm'};
+function applyTheme(gl,U){
+  for(const k in THEME){const l=U(k); if(l) gl.uniform3fv(l,K.color(THEME[k]));}
+  const l=U('FB'); if(l) gl.uniform3fv(l,K.color('--primary-hi').map(v=>v+(1-v)*.38));
+}
+window.frame=function(t){
+  t=((t%DUR)+DUR)%DUR; const ph=t/DUR, P=2*Math.PI*ph;
+  applyTheme(B.gl,B.U); applyTheme(F.gl,F.U);
+  B.gl.uniform1f(B.U('ph'),ph); B.draw(); F.gl.uniform1f(F.U('ph'),ph); F.draw();
+  // showcase case: slow levitation + gentle 3D sway (loop-safe sines)
+  const ry=7*Math.sin(P), rx=3*Math.sin(P*2+.6), y=-10*Math.sin(P+1.2);
+  css('#sw',{transform:`translateY(${y}px) rotateY(${ry}deg) rotateX(${rx}deg)`});
+  css('#shadow',{transform:`scaleX(${1-0.04*Math.sin(P+1.2)})`,opacity:.8+.15*Math.sin(P+1.2)});
+  css('#sw .slab',{'--g':(((t+1.2)%3)/3*1.6-.3).toFixed(3)});
+  // two caption beats, 3 s each; outgoing leaves before incoming arrives
+  const beat=(c,s,a)=>{const u=((t-a)%DUR+DUR)%DUR;
+    const i=outExpo(seg(u,0,.7)), x=inExpo(seg(u,2.45,2.85)), si=outExpo(seg(u,.15,.8));
+    css(c,{opacity:i*(1-x),transform:`translateY(${(1-i)*46-x*26}px)`,filter:`blur(${(1-i)*6+x*5}px)`});
+    css(s,{opacity:si*(1-x),transform:`translateY(${(1-si)*22}px)`});
+    css(c+' span',{backgroundPosition:`${(u/3)*120}% 0`});};
+  beat('#c1','#s1',0.05); beat('#c2','#s2',3.05);
+};
+frame(0);
+</script></body></html>

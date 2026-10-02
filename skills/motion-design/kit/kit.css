@@ -1,0 +1,64 @@
+/* motion-design kit: shared layout + components.
+   Colours and fonts live in theme.css (edit that file to rebrand every style at once).
+   Default canvas is 1080x1350 (4:5); --W/--H come from theme.css and render.mjs can override them. */
+@import url(theme.css);
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:var(--W);height:var(--H);overflow:hidden;background:var(--bg)}
+#stage{position:relative;width:var(--W);height:var(--H);overflow:hidden;background:var(--bg);color:var(--text);font-family:var(--sans)}
+.abs{position:absolute}
+.center{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)}
+.foiltext{background:var(--foil);background-size:220% 100%;-webkit-background-clip:text;background-clip:text;color:transparent}
+.eyebrow{font-family:var(--mono);font-weight:700;font-size:22px;letter-spacing:.18em;text-transform:uppercase;color:var(--accent)}
+.display{font-family:var(--display);font-weight:900;text-transform:uppercase;line-height:.86;letter-spacing:.005em}
+.grain{position:absolute;inset:0;pointer-events:none;opacity:.07;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' seed='4'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>")}
+.vignette{position:absolute;inset:0;pointer-events:none;background:radial-gradient(120% 90% at 50% 45%,transparent 55%,rgb(var(--deep-rgb) / .55) 100%)}
+
+/* ---------- Showcase case ("slab"): a card or product sealed in a clear acrylic case ----------
+   Swap the art with --art on .card .art (any image: product shot, screenshot, illustration):
+     <div class="art" style="--art:url(assets/hero.png)"></div>
+   <div class="slab"><div class="slab-label"><div class="l1">EYEBROW</div><div class="l2">TITLE</div><div class="grade">10</div></div>
+   <div class="slab-window"><div class="card"><div class="art"></div><div class="name">Lumen Wisp</div></div></div><div class="glare"></div></div>
+   Size with --s (default 1 = 420x700). Animate the glare with --g (0..1). */
+.slab{--s:1;--g:0;position:absolute;width:calc(420px*var(--s));height:calc(700px*var(--s));border-radius:calc(26px*var(--s));
+  background:linear-gradient(160deg,rgba(255,255,255,.30),rgba(255,255,255,.06) 38%,rgb(var(--accent-rgb) / .10) 70%,rgba(255,255,255,.22));
+  box-shadow:inset 0 0 0 calc(2px*var(--s)) rgba(255,255,255,.55),inset 0 0 0 calc(10px*var(--s)) rgba(255,255,255,.07),
+    0 calc(40px*var(--s)) calc(80px*var(--s)) rgba(0,0,0,.45),0 0 calc(60px*var(--s)) rgb(var(--primary-rgb) / .35);
+  overflow:hidden;backdrop-filter:blur(2px)}
+.slab-label{position:absolute;left:6%;right:6%;top:4.2%;height:15%;border-radius:calc(10px*var(--s));background:var(--text);color:var(--bg);overflow:hidden;
+  padding:calc(14px*var(--s)) calc(18px*var(--s)) 0 calc(28px*var(--s))}
+.slab-label:before{content:'';position:absolute;left:0;top:0;bottom:0;width:calc(10px*var(--s));background:var(--primary)}
+.slab-label .l1{font-family:var(--mono);font-weight:700;font-size:calc(14px*var(--s));letter-spacing:.16em;color:var(--primary-lo)}
+.slab-label .l2{font-family:var(--display);font-weight:900;font-size:calc(40px*var(--s));line-height:.9;margin-top:calc(4px*var(--s))}
+.slab-label .grade{position:absolute;right:0;top:0;bottom:0;width:26%;background:var(--foil);background-size:220% 100%;display:flex;align-items:center;justify-content:center;
+  font-family:var(--display);font-weight:900;font-size:calc(58px*var(--s));color:var(--bg)}
+.slab-window{position:absolute;left:8%;right:8%;top:22.5%;bottom:4.5%;border-radius:calc(14px*var(--s));background:rgb(var(--deep-rgb) / .55);
+  box-shadow:inset 0 0 0 calc(2px*var(--s)) rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center}
+.card{position:relative;width:86%;height:92%;border-radius:calc(14px*var(--s));overflow:hidden;
+  background:linear-gradient(170deg,var(--warm),var(--warm-lo));padding:5.5%;box-shadow:0 calc(6px*var(--s)) calc(18px*var(--s)) rgba(0,0,0,.4)}
+.card .art{position:absolute;left:6%;right:6%;top:6%;height:58%;border-radius:calc(8px*var(--s));overflow:hidden;
+  background-size:cover;background-position:center;
+  background:var(--art,none) center/cover no-repeat,radial-gradient(60% 55% at 50% 52%,var(--text) 0 12%,transparent 13%),
+    conic-gradient(from 200deg at 50% 52%,var(--primary),var(--accent),var(--pop),var(--warm),var(--primary));}
+.card .art[style*='--art']:after{display:none}
+.card .art:after{content:'';position:absolute;inset:0;background:repeating-linear-gradient(120deg,rgba(255,255,255,.0) 0 14px,rgba(255,255,255,.16) 14px 16px)}
+.card .name{position:absolute;left:7%;right:7%;top:68%;font-family:var(--display);font-weight:900;font-size:calc(34px*var(--s));color:var(--bg);text-transform:uppercase;line-height:.9}
+.card .meta{position:absolute;left:7%;right:7%;top:79%;height:12%;border-radius:calc(6px*var(--s));background:rgb(var(--bg-rgb) / .12)}
+.glare{position:absolute;inset:-20%;pointer-events:none;mix-blend-mode:screen;
+  background:linear-gradient(115deg,transparent calc(30% + var(--g)*60%),rgba(255,255,255,.55) calc(36% + var(--g)*60%),rgb(var(--accent-rgb) / .25) calc(40% + var(--g)*60%),transparent calc(46% + var(--g)*60%))}
+
+/* ---------- Ticket / pass (any "your entry / your plan / your order" token) ---------- */
+.ticket{--s:1;position:absolute;width:calc(520px*var(--s));height:calc(220px*var(--s));color:var(--bg);
+  background:var(--text);border-radius:calc(18px*var(--s));
+  -webkit-mask:radial-gradient(circle calc(26px*var(--s)) at 0 50%,transparent 98%,#000) left/51% 100% no-repeat,
+               radial-gradient(circle calc(26px*var(--s)) at 100% 50%,transparent 98%,#000) right/51% 100% no-repeat;
+  box-shadow:0 20px 50px rgba(0,0,0,.35)}
+.ticket .stub{position:absolute;right:0;top:0;bottom:0;width:30%;background:var(--primary);color:var(--text);display:flex;align-items:center;justify-content:center;
+  font-family:var(--display);font-weight:900;font-size:calc(96px*var(--s))}
+.ticket .perf{position:absolute;right:30%;top:10%;bottom:10%;border-left:calc(3px*var(--s)) dashed rgb(var(--bg-rgb) / .35)}
+.ticket .t1{position:absolute;left:9%;top:18%;font-family:var(--mono);font-weight:700;font-size:calc(17px*var(--s));letter-spacing:.18em;color:var(--primary-lo)}
+.ticket .t2{position:absolute;left:9%;top:34%;font-family:var(--display);font-weight:900;font-size:calc(70px*var(--s));line-height:.86;text-transform:uppercase}
+
+.chip{display:inline-flex;align-items:center;gap:12px;padding:12px 22px;border-radius:999px;background:rgb(var(--text-rgb) / .08);
+  box-shadow:inset 0 0 0 2px rgb(var(--text-rgb) / .22);font-family:var(--mono);font-weight:700;font-size:22px;letter-spacing:.12em;color:var(--text);text-transform:uppercase}
+.chip i{width:12px;height:12px;border-radius:50%;background:var(--accent)}

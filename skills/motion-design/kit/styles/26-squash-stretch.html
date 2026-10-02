@@ -1,0 +1,126 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link rel="stylesheet" href="../kit.css"><script src="../kit.js"></script>
+<style>
+#bg{position:absolute;inset:0;background:radial-gradient(70% 48% at 50% 46%,color-mix(in srgb,var(--primary-lo) 45%,var(--bg2)) 0%,color-mix(in srgb,var(--bg2) 75%,var(--bg)) 50%,var(--bg) 82%)}
+#floor{position:absolute;left:0;right:0;top:832px;height:2px;background:linear-gradient(90deg,transparent,rgb(var(--accent-rgb) / .5) 30%,color-mix(in srgb,var(--primary-hi) 60%,transparent) 70%,transparent)}
+#floorglow{position:absolute;left:90px;right:90px;top:832px;height:220px;background:radial-gradient(50% 60% at 50% 0%,rgb(var(--primary-rgb) / .35),transparent 70%)}
+#shadow{position:absolute;left:540px;top:832px;width:700px;height:60px;margin-left:-350px;margin-top:-30px;border-radius:50%;background:radial-gradient(closest-side,rgb(var(--deep-rgb) / .75),rgb(var(--deep-rgb) / 0))}
+.rip{position:absolute;left:540px;top:832px;width:800px;height:110px;margin-left:-400px;margin-top:-55px;border-radius:50%;box-shadow:inset 0 0 0 3px rgb(var(--accent-rgb) / .7)}
+#cam{position:absolute;inset:0}
+#pass{position:absolute;left:150px;top:502px;width:780px;height:330px;transform-origin:50% 100%}
+#body{position:absolute;left:0;top:0;width:562px;height:330px;background:linear-gradient(170deg,color-mix(in srgb,var(--text) 55%,#fff),var(--text2));border-radius:28px 0 0 28px;color:var(--bg);overflow:hidden;
+  -webkit-mask:radial-gradient(circle 24px at 100% 0,transparent 98%,#000) top/100% 51% no-repeat,radial-gradient(circle 24px at 100% 100%,transparent 98%,#000) bottom/100% 51% no-repeat;
+  -webkit-mask-composite:source-over}
+#body:before{content:'';position:absolute;left:0;top:0;bottom:0;width:16px;background:var(--primary)}
+#body .t1{position:absolute;left:52px;top:46px;font-family:var(--mono);font-weight:700;font-size:22px;letter-spacing:.18em;color:var(--primary-lo)}
+#body .t2{position:absolute;left:50px;top:92px;font-family:var(--display);font-weight:900;font-size:118px;line-height:.84;text-transform:uppercase}
+#body .t3{position:absolute;left:52px;top:262px;font-family:var(--mono);font-weight:700;font-size:20px;letter-spacing:.16em;color:rgb(var(--bg-rgb) / .55)}
+#bglare{position:absolute;inset:-30%;mix-blend-mode:soft-light;background:linear-gradient(115deg,transparent 40%,rgba(255,255,255,.9) 48%,transparent 56%)}
+#stub{position:absolute;left:560px;top:0;width:220px;height:330px;transform-origin:0 50%;border-radius:0 28px 28px 0;
+  background:linear-gradient(160deg,color-mix(in srgb,var(--primary) 55%,var(--primary-hi)),color-mix(in srgb,var(--primary) 78%,var(--primary-lo)) 70%,color-mix(in srgb,var(--primary) 55%,var(--primary-lo)));
+  -webkit-mask:radial-gradient(circle 24px at 0 0,transparent 98%,#000) top/100% 51% no-repeat,radial-gradient(circle 24px at 0 100%,transparent 98%,#000) bottom/100% 51% no-repeat}
+#stub:before{content:'';position:absolute;left:0;top:34px;bottom:34px;border-left:4px dashed rgb(var(--text-rgb) / .45)}
+#stub svg{position:absolute;left:30px;top:105px}
+#sglare{position:absolute;inset:0;background:linear-gradient(160deg,rgba(255,255,255,.22),transparent 45%)}
+#stamp{position:absolute;left:262px;top:-92px;padding:14px 30px 12px;border-radius:16px;transform-origin:50% 50%;
+  box-shadow:inset 0 0 0 6px var(--primary),inset 0 0 0 11px rgba(255,255,255,0),inset 0 0 0 13px var(--primary);
+  font-family:var(--display);font-weight:900;font-size:66px;line-height:1;color:var(--primary);text-transform:uppercase;white-space:nowrap;background:var(--text);filter:drop-shadow(0 14px 22px rgb(var(--deep-rgb) / .45))}
+#stamp small{display:block;font-family:var(--mono);font-weight:700;font-size:20px;letter-spacing:.3em;text-align:center;margin-top:4px}
+#burst{position:absolute;left:0;top:0}
+#eb{position:absolute;left:0;right:0;top:132px;text-align:center}
+#head{position:absolute;left:0;right:0;top:960px;text-align:center;font-size:128px}
+#head .ln{display:block;white-space:nowrap}
+#head .w{display:inline-block;margin:0 .05em;transform-origin:50% 90%}
+#sub{position:absolute;left:100px;right:100px;top:1212px;text-align:center;font-family:var(--sans);font-weight:600;font-size:34px;color:rgb(var(--text-rgb) / .78)}
+</style></head><body><div id="stage">
+<div id="bg"></div><div id="floorglow"></div>
+<div id="cam">
+ <div id="floor"></div>
+ <div class="rip" id="r0"></div><div class="rip" id="r1"></div><div class="rip" id="r2"></div>
+ <div id="shadow"></div>
+ <div id="pass">
+  <div id="body"><div class="t1" data-copy="passEyebrow"></div><div class="t2" data-copy="passTitle"></div><div id="bglare"></div></div>
+  <div id="stub"><div id="sglare"></div>
+   <svg width="160" height="120" viewBox="-80 -60 160 120"><path id="infp" fill="none" style="stroke:var(--text)" stroke-width="14" stroke-linecap="round"/></svg></div>
+  <div id="stamp"><span data-copy="stamp"></span><small data-copy="stampSmall"></small></div>
+ </div>
+ <svg id="burst" width="1080" height="1350"></svg>
+</div>
+<div id="eb" class="eyebrow" data-copy="eyebrow"></div>
+<div id="head" class="display"></div>
+<div id="sub" data-copy="sub"></div>
+<div class="grain"></div><div class="vignette"></div>
+</div>
+<script>
+window.DUR=5; window.POSTER=2.9;
+const {seg,smoother,lerp,outExpo,inExpo,premium,emph,outBack,outCubic,inCubic,hash,$,$$,css}=K;
+// COPY keys: eyebrow (top mono line), passEyebrow (small mono line on the pass), passTitle (2 short lines on the pass, <= 6 chars each, <br> between),
+// stamp (stamp word, <= ~11 chars) + stampSmall (mono line under it), lines (headline: 2 lines of 2 words, last word of each line in foil), sub (one sentence).
+const COPY = K.copy({eyebrow:'Lumen', passEyebrow:'LUMEN · PASS 0026', passTitle:'Your<br>Pass', stamp:'Approved', stampSmall:'READY TO SHIP',
+  lines:[['Sketch','it.'],['Ship','it.']], sub:'Your work, out the door in one click.'});
+K.fill(COPY);
+$('#head').innerHTML=COPY.lines.map(l=>'<span class="ln">'+l.map((w,i)=>`<span class="w${i===l.length-1&&l.length>1?' foiltext':''}">${w}</span>`).join('')+'</span>').join('\n');
+// ∞ on the stub
+(function(){let d='';for(let k=0;k<=120;k++){const s=k/120*2*Math.PI,q=1+Math.sin(s)**2;d+=(k?'L':'M')+(62*Math.cos(s)/q).toFixed(1)+','+(62*Math.sin(s)*Math.cos(s)/q*1.2).toFixed(1);}$('#infp').setAttribute('d',d+'Z');})();
+// burst ticks around the stamp impact
+const burst=$('#burst'), BX=583, BY=450, NB=10, BL=[];
+for(let i=0;i<NB;i++){const l=document.createElementNS('http://www.w3.org/2000/svg','line');l.style.stroke=i%2?'var(--accent)':'var(--warm)';l.setAttribute('stroke-width',i%2?7:6);l.setAttribute('stroke-linecap','round');burst.appendChild(l);BL.push(l);}
+// timeline (s)
+const T_IMP=[.50,1.00,1.32], CONTACT=[{a:.50,b:.62,amt:.22},{a:1.00,b:1.08,amt:.12},{a:1.32,b:1.38,amt:.05}];
+const HOPS=[{a:.62,b:1.00,h:150},{a:1.08,b:1.32,h:44}];
+const ST=1.78;                       // stamp impact
+const words=$$('#head .w');
+// damped wobble after an event
+const wob=(t,t0,A,w=26,d=7)=>t<t0?0:A*Math.exp(-(t-t0)*d)*Math.sin((t-t0)*w);
+window.frame=function(t){
+  t=((t%DUR)+DUR)%DUR;
+  let y=0, sy=1, rot=0, x=0;
+  if(t<.5){ // pass falls on an arc, accelerating, stretched by speed
+    const u=t/.5; y=1150*(1-u*u); x=170*(1-outCubic(u)); rot=12*(1-u)*(1-u)-1.5*u; sy=1+.13*u*u;
+  } else if(t<4.30){
+    for(const c of CONTACT) if(t>=c.a&&t<c.b){sy=1-c.amt*Math.sin(Math.PI*seg(t,c.a,c.b));}
+    for(const h of HOPS) if(t>=h.a&&t<h.b){const u=seg(t,h.a,h.b); y=h.h*4*u*(1-u); sy=1+.11*(h.h/150)*Math.abs(1-2*u)*(u<.5?1:.6);}
+    rot=wob(t,.5,-3.2,14,4)+wob(t,1.0,1.4,18,6);
+    // stamp hit compresses the pass a little
+    sy*=1-.05*Math.sin(Math.PI*seg(t,ST,ST+.12));
+    // idle "alive" breathe in the hold
+    const br=smoother(seg(t,2.2,2.6))*(1-smoother(seg(t,4.0,4.3)));
+    sy*=1+.012*br*Math.sin(2*Math.PI*(t-2.2)/1.0); y+=br*6*(.5-.5*Math.cos(2*Math.PI*(t-2.2)/1.0));
+  }
+  if(t>=4.30&&t<4.52){ // anticipation: squash down before the jump
+    const u=smoother(seg(t,4.30,4.52)); sy=1-.2*u; rot=-2*u;
+  } else if(t>=4.52){ // launch: fast up and out, stretched
+    const u=seg(t,4.52,4.86); y=1180*Math.pow(u,1.15); sy=lerp(1.26,1.12,u); rot=lerp(-2,-9,u); x=-90*u*u;
+  }
+  const sx=Math.pow(sy,-.75); // preserve volume (slightly under, reads cleaner)
+  css('#pass',{transform:`translate(${x.toFixed(1)}px,${(-y).toFixed(1)}px) rotate(${rot.toFixed(2)}deg) scale(${(1.08*sx).toFixed(4)},${(1.08*sy).toFixed(4)})`});
+  // pass stub: follow-through (hinged at the perforation), lags every impact
+  const sr=wob(t,.5,9,24,6)+wob(t,1.0,-4.5,26,7)+wob(t,1.32,2,28,8)+wob(t,ST,-3,30,9)+wob(t,4.30,-6,20,5)*(t<4.52?1:0)+(t>=4.52?lerp(-6,8,seg(t,4.52,4.7)):0)+(t<.5?-6*(1-t/.5):0);
+  css('#stub',{transform:`rotate(${sr.toFixed(2)}deg)`});
+  css('#bglare',{transform:`translateX(${lerp(-40,40,smoother(seg(t,2.0,3.6)))}%)`});
+  // shadow tracks height
+  const hgt=Math.min(1,y/400); css('#shadow',{transform:`translateX(${x.toFixed(1)}px) scale(${(lerp(1,.35,hgt)*(sy<1?1/sy:1)).toFixed(3)},1)`,opacity:(lerp(1,0,hgt)).toFixed(3)});
+  // floor ripples on each landing
+  ['#r0','#r1','#r2'].forEach((s,i)=>{const a=T_IMP[i], u=seg(t,a,a+.7); css(s,{transform:`scale(${lerp(.5,1.25-.15*i,outExpo(u)).toFixed(3)})`,opacity:(t>=a?(1-u)*(.9-.25*i):0).toFixed(3)});});
+  // stamp: drops toward camera, slams with ~15% overshoot, settles tilted
+  const sa=seg(t,1.60,ST), sb=seg(t,ST,ST+.36);
+  let ss, so;
+  if(t<1.60){ss=2.4;so=0}else if(t<ST){ss=lerp(2.4,1,inCubic(sa));so=smoother(sa*1.4>1?1:sa*1.4)}else{ss=1-.12*Math.sin(Math.PI*Math.min(1,sb*2.2))*(sb<.45?1:0)+ (sb>=.45? (outBack(seg(t,ST+.16,ST+.4),2.4)-1)*.6:0);so=1}
+  css('#stamp',{transform:`rotate(${lerp(-18,-8,Math.min(1,t<ST?inCubic(sa):1)).toFixed(2)}deg) scale(${ss.toFixed(4)})`,opacity:so.toFixed(3)});
+  // camera nudge on the stamp hit
+  const sh=wob(t,ST,7,60,16); css('#cam',{transform:`translate(${(sh*.5).toFixed(2)}px,${sh.toFixed(2)}px)`});
+  // burst ticks
+  const bu=seg(t,ST,ST+.42);
+  BL.forEach((l,i)=>{const a=i/NB*2*Math.PI+.3, r0=lerp(95,175,outExpo(bu)), r1=lerp(150,215,outCubic(bu));
+    const kx=2.3; l.setAttribute('x1',(BX+Math.cos(a)*r0*kx).toFixed(1));l.setAttribute('y1',(BY+Math.sin(a)*r0).toFixed(1));
+    l.setAttribute('x2',(BX+Math.cos(a)*Math.max(r0,r1)*kx).toFixed(1));l.setAttribute('y2',(BY+Math.sin(a)*Math.max(r0,r1)).toFixed(1));
+    l.setAttribute('opacity',(t>=ST&&bu<1?1-bu:0).toFixed(3));});
+  // headline: bouncy word pops (stagger 70 ms), drop out before the jump
+  words.forEach((w,i)=>{const a=1.95+i*.07, u=seg(t,a,a+.42), o=inExpo(seg(t,4.05+i*.04,4.3+i*.04));
+    css(w,{opacity:(Math.min(1,u*4)*(1-o)).toFixed(3),transform:`translateY(${((1-Math.min(1,outBack(u,2.4)))*50+o*50).toFixed(1)}px) scale(${(lerp(.55,1,outBack(u,2.6))*(1-.2*o)).toFixed(4)})`});});
+  $$('.foiltext').forEach(f=>f.style.backgroundPosition=`${(t/DUR*220).toFixed(1)}% 0`);
+  const si=outExpo(seg(t,2.35,2.9)), so2=inExpo(seg(t,4.0,4.25));
+  css('#sub',{opacity:(si*(1-so2)).toFixed(3),transform:`translateY(${((1-si)*24+so2*20).toFixed(1)}px)`});
+};
+frame(0);
+</script></body></html>

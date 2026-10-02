@@ -1,0 +1,9 @@
+# 24 Flow Field
+**Feeling:** calm, organic, hypnotic, generative
+**Good for:** brand openers, "always on" or loop ideas, background plates behind a hero object, a calm-to-formed reveal of a mark
+**Avoid when:** you need a crisp product shot or the message needs reading in the first second
+**Mechanism:** 2,600 seeded particles on canvas 2D follow a 2-octave value-noise vector field (fixed step 1/24 s, each particle integrated from its seeded birth point every frame, two lives per loop with birth index = cycle mod 2, so frame(0) == frame(DUR)). Each particle then blends (staggered, premium ease) onto a lemniscate (∞) band where it streams along the curve; trail samples use per-sample time so the gather/release paths draw real motion streaks with a perpendicular swirl arc. Additive blending plus a half-res CSS-blurred glow copy.
+**Timing:** 6 s loop. Free flow 0–1.0 s, gather 1.0–3.0 s (0.55 s per-particle stagger), ∞ hold with headline 2.35–4.0 s (3% slow push), release 4.2–5.8 s back into the field. Poster 3.7 s.
+**Swap points:** COPY `eyebrow` (≤ 3 words), `lines` (2 lines of 1–2 short words; the last word of each line gets the foil), `sub` (≤ 9 words). Art: the target shape is `lem()`; swap it for any parametric curve (circle, logo path sampled to points). Roles: particle colours are --primary-hi, --primary, --accent, --pop, --warm, --text (weighted toward primary/accent), background glow --bg3/--bg2.
+**Adapting:** replace `lem()` with points sampled from an SVG path to form your logo. For 16:9 move `CX/CY` and shrink `A`; keep N around 2,600 per 1.5 MP or the glow gets muddy. For a longer piece, extend the hold and keep the field running under the next scene.
+**Credits:** anthropics/skills `algorithmic-art` (seeded flow fields, particles tracing invisible forces, "Field Dynamics"), terkelg/awesome-creative-coding (flow-field genre), LottieFiles motion-design (premium ease .4,0,.2,1 for the gather).

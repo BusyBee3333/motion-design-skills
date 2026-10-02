@@ -1,0 +1,183 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link rel="stylesheet" href="../kit.css"><script src="../kit.js"></script>
+<style>
+#bg{position:absolute;inset:0;background:radial-gradient(64% 46% at 50% 44%,color-mix(in srgb,var(--primary-lo) 40%,var(--bg2)) 0%,color-mix(in srgb,var(--bg2) 75%,var(--bg)) 50%,var(--bg) 82%)}
+#grid{position:absolute;inset:0;background:
+  linear-gradient(rgb(var(--text-rgb) / .035) 1px,transparent 1px) 0 0/30px 30px,
+  linear-gradient(90deg,rgb(var(--text-rgb) / .035) 1px,transparent 1px) 0 0/30px 30px;
+  -webkit-mask:radial-gradient(60% 50% at 50% 45%,#000,transparent 90%)}
+canvas{position:absolute;left:0;top:0}
+#slabwrap{position:absolute;left:330px;top:240px;width:420px;height:700px;transform-origin:50% 50%}
+#scan{position:absolute;left:300px;width:480px;height:4px;margin-top:-2px;background:var(--accent);box-shadow:0 0 18px 4px rgb(var(--accent-rgb) / .7),0 0 60px 10px rgb(var(--primary-rgb) / .6)}
+#eb{position:absolute;left:0;right:0;top:182px;text-align:center}
+#head{position:absolute;left:0;right:0;top:996px;text-align:center;font-size:118px}
+#head .ln{display:block;white-space:nowrap;height:102px}
+#head .c{display:inline-block}
+#cur{display:inline-block;width:.42em;height:.74em;background:var(--accent);vertical-align:baseline;margin-left:.06em;transform:translateY(.02em)}
+#sub{position:absolute;left:100px;right:100px;top:1222px;text-align:center;font-family:var(--sans);font-weight:600;font-size:34px;color:rgb(var(--text-rgb) / .78)}
+</style></head><body><div id="stage">
+<div id="bg"></div><div id="grid"></div>
+<canvas id="c" width="1080" height="1350"></canvas>
+<!-- showcase case. Your own art: <div class="art" style="--art:url(your-image.png)"></div> (the pixel phase stays generated) -->
+<div id="slabwrap"><div class="slab" style="--s:1">
+  <div class="slab-label"><div class="l1" data-copy="caseEyebrow"></div><div class="l2" data-copy="caseTitle"></div><div class="grade" data-copy="caseNumber"></div></div>
+  <div class="slab-window"><div class="card"><div class="art"></div><div class="name" data-copy="cardName"></div><div class="meta"></div></div></div>
+  <div class="glare"></div></div></div>
+<div id="scan"></div>
+<div id="eb" class="eyebrow" data-copy="eyebrow"></div>
+<div id="head" class="display"><div class="ln" id="l1"></div><div class="ln" id="l2"></div></div>
+<div id="sub" data-copy="sub"></div>
+<div class="grain"></div><div class="vignette"></div>
+</div>
+<script>
+window.DUR=6; window.POSTER=3.3;
+const {seg,smoother,lerp,outExpo,inExpo,premium,outBack,outCubic,inCubic,hash,$,$$,css}=K;
+// COPY keys: eyebrow (top mono line), lines (2 typed headline lines, <= ~14 chars each; the last word of each line gets the foil),
+// sub (one sentence), caseEyebrow / caseTitle / caseNumber / cardName (showcase case label + card name).
+const COPY = K.copy({eyebrow:'Lumen · Export ready', lines:['PIXEL PERFECT.','EVERY FRAME.'], sub:'From draft to done, one pixel at a time.',
+  caseEyebrow:'LUMEN · NO. 0027', caseTitle:'SHOWCASE', caseNumber:'01', cardName:'Bit Bloom'});
+K.fill(COPY);
+const cv=$('#c'), ctx=cv.getContext('2d');
+const CS=30, GW=36, GH=45, SX=330, SY=240, SW=420, SH=700;
+// Colours come from theme roles and are resolved lazily (applyTheme, run from frame() whenever the theme changes).
+// 'hi+text' = primary-hi lifted 40% toward text.
+const PAL=['--primary','--primary-hi','--accent','hi+text','--pop','--warm','--text','--accent-lo'];
+const mix=(a,b,u)=>[0,1,2].map(i=>Math.round(lerp(a[i],b[i],u)));
+const rgb=c=>`rgb(${c[0]},${c[1]},${c[2]})`;
+let TC={}; // role -> [r,g,b] 0..255
+const hex=role=>TC[role];
+let FOIL=[];
+function readTheme(){
+  ['--bg','--bg2','--bg3','--primary','--primary-hi','--primary-lo','--accent','--accent-lo','--text','--warm','--warm-lo','--pop'].forEach(r=>TC[r]=K.color(r).map(v=>Math.round(v*255)));
+  TC['hi+text']=mix(TC['--primary-hi'],TC['--text'],.4);
+  TC.cardMeta=mix(TC['--warm-lo'],TC['--bg'],.15);          // darker strip on the card
+  TC.window=mix(TC['--bg'],TC['--bg2'],.4);                 // case window
+  TC.edge0=mix(TC['--primary'],TC['--bg3'],.2); TC.edge1=mix(TC['--primary-hi'],TC['--text'],.15); // acrylic edge
+  FOIL=['--accent','hi+text','--pop','--warm','--accent'].map(hex);
+}
+const foilAt=u=>{const x=Math.max(0,Math.min(.999,u))*4,i=Math.floor(x);return mix(FOIL[i],FOIL[i+1],x-i);};
+// ---- target colour of the showcase case, sampled per cell (approximates kit .slab) ----
+function slabColor(u,v,ci,ri){
+  const inR=(a,b,c,d)=>u>=a&&u<=b&&v>=c&&v<=d;
+  if(inR(.06,.94,.042,.192)){ if(u<.085) return hex('--primary'); if(u>.74) return foilAt((u-.74)/.2*.8+.1);
+    if(v>.09&&v<.17&&u<.7&&hash(ci,ri*7)<.55) return hex('--bg'); return hex('--text'); }
+  if(inR(.08,.92,.225,.955)){
+    if(inR(.14,.86,.255,.925)){ // card
+      const cu=(u-.14)/.72, cv2=(v-.255)/.67;
+      if(cv2>.06&&cv2<.6&&cu>.07&&cu<.93){const dx=cu-.5,dy=(cv2-.33)*1.4; if(dx*dx+dy*dy<.008) return hex('--text');
+        const a=(Math.atan2(dy,dx)/(2*Math.PI)+1.2)%1; return foilAt(a);}
+      if(cv2>.66&&cv2<.76&&cu>.08&&cu<.7) return hex('--bg3');
+      if(cv2>.8&&cv2<.92&&cu>.08&&cu<.92) return hex('cardMeta');
+      return mix(hex('--warm'),hex('--warm-lo'),cv2);
+    }
+    return hex('window');
+  }
+  return mix(hex('edge0'),hex('edge1'),(1-v)*.6+u*.2);
+}
+// ---- build pixels ----
+const P=[];
+const C0=SX/CS, R0=SY/CS, NC=SW/CS, NR=Math.round(SH/CS);
+for(let r=0;r<NR;r++)for(let c=0;c<NC;c++){
+  const u=(c+.5)/NC, v=(r+.5)*CS/SH; if(v>1)continue;
+  // rounded corners
+  const cx=Math.min(c,NC-1-c), cy=Math.min(r,NR-1-r); if(cx===0&&cy===0)continue;
+  const i=P.length;
+  P.push({tc:C0+c,tr:R0+r,u,v,c,r,col:null,pi:Math.floor(hash(i,3)*PAL.length),sc:null,
+    bc:Math.floor(hash(i,1)*GW),br:Math.floor(hash(i,2)*(GH-6))+1,
+    arr:0, dep:0, ph:hash(i,9)});
+}
+// arrival: builds bottom→top (stacking), column jitter; departure: top→bottom
+P.forEach((p,i)=>{const rr=(p.tr-R0)/NR; p.arr=.55+(1-rr)*1.15+hash(i,5)*.28; p.dep=4.25+rr*.55+hash(i,6)*.3;});
+// ambient pixels (always hopping, dim)
+const A=[]; for(let i=0;i<70;i++)A.push({bc:Math.floor(hash(i,41)*GW),br:Math.floor(hash(i,42)*GH),pi:Math.floor(hash(i,43)*PAL.length),sc:null,a:.12+.2*hash(i,44),ph:hash(i,45)});
+let themeKey='';
+function applyTheme(){ const cs=getComputedStyle(document.documentElement), k=PAL.concat(['--bg','--bg2','--bg3','--warm-lo']).map(r=>cs.getPropertyValue(r)).join();
+  if(k===themeKey) return; themeKey=k; readTheme();
+  P.forEach(p=>{p.col=slabColor(p.u,p.v,p.c,p.r); p.sc=hex(PAL[p.pi]);}); A.forEach(a=>a.sc=hex(PAL[a.pi])); }
+// hop: discrete grid shuffle, 20 hops per loop (seamless), 90 ms slides
+const HOP=DUR/20;
+function hopPos(bc,br,i,t,ph){
+  const tt=t+ph*HOP, k=Math.floor(tt/HOP), f=tt/HOP-k, kk=((k%20)+20)%20, kn=(kk+19)%20;
+  const off=j=>[Math.round((hash(i,j*3+100)-.5)*4),Math.round((hash(i,j*3+101)-.5)*4)];
+  const a=off(kn), b=off(kk), e=outExpo(Math.min(1,f*HOP/.09));
+  return [bc+lerp(a[0],b[0],e), br+lerp(a[1],b[1],e)];
+}
+// 8-bit ∞ bitmap
+const INF=[".###...###.","#...#.#...#","#....#....#","#...#.#...#",".###...###."];
+const IC=14, IX=540-11*IC/2, IY=92;
+// headline typing
+const [L1,L2]=COPY.lines;
+const l1=$('#l1'), l2=$('#l2');
+[[l1,L1],[l2,L2]].forEach(([el,s])=>{const fw=document.createElement('span');fw.className='foiltext fw';const f0=s.lastIndexOf(' ')+1;[...s].forEach((ch,j)=>{const sp=document.createElement('span');sp.className='c';sp.textContent=ch===' '?'\u00a0':ch;(j>=f0?fw:el).appendChild(sp);});el.appendChild(fw);});
+const cur=document.createElement('span'); cur.id='cur';
+const chars=[...$$('#l1 .c'),...$$('#l2 .c')];
+window.frame=function(t){
+  t=((t%DUR)+DUR)%DUR;
+  applyTheme();
+  ctx.clearRect(0,0,1080,1350);
+  // scan line: reveal crisp showcase case top→bottom (2.05–2.5), hide it bottom→top (3.85–4.2)
+  const rv=t<3?smoother(seg(t,2.08,2.5)):1-smoother(seg(t,3.85,4.2));
+  const goingDown=t<3;
+  const scanY=goingDown? SY+SH*rv : SY+SH*rv;
+  css('#slabwrap .slab',{clipPath:`inset(0 0 ${((1-rv)*100).toFixed(2)}% 0)`});
+  css('#scan',{top:`${scanY.toFixed(1)}px`,opacity:(rv>0.001&&rv<.999?1:0)});
+  const push=1+.03*smoother(seg(t,2.1,4.2));
+  css('#slabwrap',{transform:`scale(${push.toFixed(4)})`});
+  // ambient
+  A.forEach((a,i)=>{const [c,r]=hopPos(a.bc,a.br,i+5000,t,a.ph); const tw=.6+.4*Math.sin(2*Math.PI*(t/DUR*3+a.ph));
+    const hd=(r*CS>930)?1-.75*smoother(seg(t,2.2,2.6))*(1-smoother(seg(t,3.8,4.1))):1; ctx.fillStyle=rgb(a.sc); ctx.globalAlpha=a.a*tw*hd; ctx.fillRect(c*CS+3,r*CS+3,CS-6,CS-6);});
+  ctx.globalAlpha=1;
+  // showcase case pixels
+  P.forEach((p,i)=>{
+    let c,r,col,sc=1,al=1;
+    const [hc,hr]=hopPos(p.bc,p.br,i,t,p.ph);
+    if(t<p.arr){ c=hc;r=hr;col=p.sc;al=.85; }
+    else if(t<p.dep){
+      // Manhattan snap: x leg then y leg (each 0.16 s), white flash + pop on arrival
+      const [ac,ar]=hopPos(p.bc,p.br,i,p.arr,p.ph);
+      const ux=outExpo(seg(t,p.arr,p.arr+.16)), uy=outExpo(seg(t,p.arr+.1,p.arr+.28));
+      c=lerp(ac,p.tc,ux); r=lerp(ar,p.tr,uy);
+      const land=seg(t,p.arr+.22,p.arr+.42);
+      col=t<p.arr+.22? p.sc : mix([255,255,255],p.col,smoother(land));
+      sc=t<p.arr+.22?1:lerp(1.35,1,outBack(land,2));
+      // hidden under crisp case once the scan has passed
+      if(rv>0 && (p.tr*CS+CS*.5)<scanY && t>2) al=0;
+      if(t>=3.85 && (p.tr*CS+CS*.5)<scanY) al=0;
+    } else {
+      // pop off: arc back out to the shuffle field
+      const u=seg(t,p.dep,p.dep+.55), e=premium(u);
+      const [hc2,hr2]=hopPos(p.bc,p.br,i,p.dep+.55,p.ph);
+      c=lerp(p.tc,hc2,e); r=lerp(p.tr,hr2,e)-Math.sin(Math.PI*e)*(1.5+2*hash(i,8));
+      if(u>=1){c=hc;r=hr;}
+      col=mix(p.col,p.sc,smoother(seg(t,p.dep,p.dep+.3))); al=lerp(1,.85,u); sc=lerp(1.15,1,outCubic(u));
+    }
+    if(al<=0)return;
+    const s=(CS-3)*sc, x=c*CS+CS/2, y=r*CS+CS/2;
+    ctx.globalAlpha=al; ctx.fillStyle=rgb(col); ctx.fillRect(x-s/2,y-s/2,s,s);
+    ctx.globalAlpha=al*.22; ctx.fillStyle='#fff'; ctx.fillRect(x-s/2,y-s/2,s,3);
+  });
+  ctx.globalAlpha=1;
+  // 8-bit ∞, foil per column, blinking sparkle
+  INF.forEach((row,ri)=>[...row].forEach((ch,ci)=>{ if(ch!=='#')return;
+    const col=foilAt(((ci/11)+t/DUR)%1*.8+.1); const k=(ci+ri*3)%9, bl=((Math.floor(t*8)+k)%14===0)?1.5:1;
+    ctx.fillStyle=rgb(col.map(v=>Math.min(255,v*bl)));
+    const pop=outBack(seg(t,.1+ci*.02,.4+ci*.02),2.2);
+    const s=(IC-1.5)*Math.max(0,pop); ctx.fillRect(IX+ci*IC+IC/2-s/2,IY+ri*IC+IC/2-s/2,s,s);}));
+  css('#eb',{opacity:.9});
+  // headline: typewriter in (35 ms/char) with block cursor, backspace out
+  const nIn=Math.floor(seg(t,2.35,2.35+chars.length*.035)*chars.length+1e-6);
+  const nOut=Math.floor(seg(t,3.75,3.75+chars.length*.018)*chars.length+1e-6);
+  const n=Math.max(0,nIn-nOut);
+  chars.forEach((c,j)=>{c.style.visibility=j<n?'visible':'hidden';});
+  const last=n>0?chars[n-1]:null;
+  if(t>2.3&&t<4.05){ if(last){ if(cur.previousSibling!==last) last.parentNode.insertBefore(cur,last.nextSibling); } else if(l1.firstChild!==cur) l1.insertBefore(cur,l1.firstChild);
+    cur.style.visibility=(nIn>=chars.length&&nOut===0)?((Math.floor(t*3.4)%2)?'hidden':'visible'):'visible'; }
+  else cur.style.visibility='hidden';
+  $$('.foiltext').forEach(f=>f.style.backgroundPosition=`${(t/DUR*220).toFixed(1)}% 0`);
+  const si=outExpo(seg(t,2.85,3.3)), so=inExpo(seg(t,3.7,3.95));
+  css('#sub',{opacity:(si*(1-so)).toFixed(3),transform:`translateY(${((1-si)*20).toFixed(1)}px)`});
+  css('.glare',{});
+  $('#slabwrap .slab').style.setProperty('--g',(K.inOutSine(seg(t,2.5,3.9))*1.4-.2).toFixed(3));
+};
+frame(0);
+</script></body></html>

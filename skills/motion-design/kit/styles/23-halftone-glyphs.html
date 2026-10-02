@@ -1,0 +1,158 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link rel="stylesheet" href="../kit.css"><script src="../kit.js"></script>
+<style>
+#gl{position:absolute;left:0;top:0;width:1080px;height:1350px}
+#fontwarm{position:absolute;left:-9999px;top:0;opacity:0}
+#eb{position:absolute;left:0;right:0;top:96px;text-align:center}
+#head{position:absolute;left:0;right:0;top:985px;text-align:center;font-size:104px;white-space:nowrap}
+#sub{position:absolute;left:0;right:0;top:1115px;text-align:center;font-family:var(--sans);font-weight:600;font-size:34px;color:rgb(var(--text-rgb) / .84)}
+.tag{position:absolute;font-family:var(--mono);font-weight:500;font-size:18px;letter-spacing:.16em;color:rgb(var(--accent-rgb) / .6);text-transform:uppercase}
+</style></head><body><div id="stage">
+<canvas id="gl" width="2160" height="2700"></canvas>
+<div id="fontwarm"><span style="font-family:var(--display);font-weight:900">A</span><span style="font-family:var(--mono);font-weight:700">A</span></div>
+<div id="eb" class="eyebrow" data-copy="eyebrow"></div>
+<div class="tag" style="left:48px;top:1268px" id="tg1" data-copy="tagLeft"></div>
+<div class="tag" style="right:48px;top:1268px;text-align:right" id="tg2" data-copy="tagRight"></div>
+<div id="head" class="display"><span class="foiltext" id="h1" data-copy="headline"></span></div>
+<div id="sub" data-copy="sub"></div>
+<div class="grain"></div><div class="vignette"></div>
+</div>
+<script>
+// Halftone / data-glyph field: a 10 px cell grid. Each cell reads a looping fbm field (noise sampled on a closed circle,
+// after Leonxlnx/lumenshaders "Halftone" + "Data Glyphs") and the pass artwork (2D canvas texture) at its centre, and
+// blends between them with a per-cell staggered resolve. Dense noise cells print as 3x5 mono glyphs, the rest as dots.
+window.DUR=5.4; window.POSTER=2.75;
+const {seg,smoother,outExpo,inExpo,premium,css,$}=K;
+// COPY keys: eyebrow (top mono line), headline (one foil line, <= ~20 chars), sub (one short sentence),
+// tagLeft / tagRight (small corner labels), passLines (2 short words printed big on the pass, <= ~6 chars each).
+const COPY = K.copy({eyebrow:'Lumen', headline:'Ideas, in motion.', sub:'From first sketch to final export.',
+  tagLeft:'LUMEN · PRINT 0023', tagRight:'lumen.example', passLines:['DRAFT','DONE']});
+K.fill(COPY);
+// theme colours are read lazily (render.mjs injects --theme after load), never at top level
+const hx=n=>K.hex(n);
+// 3x5 glyph bitmaps (rows top->bottom)
+const GL=['111101101101111','010110010010111','111001111100111','111001011001111','101101111001001','111100111001111','111001010010010','000010111010000','000000111000000','000101010101000'].map(b=>parseInt(b,2));
+const TX={x:72,y:372,w:936,h:396};   // pass rect (scene px)
+function rr(c,x,y,w,h,r){c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath();}
+function drawPass(){
+  const cv=document.createElement('canvas'); cv.width=1080; cv.height=1350; const c=cv.getContext('2d');
+  const {x,y,w,h}=TX, s=w/520;
+  c.save(); rr(c,x,y,w,h,18*s); c.clip();
+  c.fillStyle=hx('--text'); c.fillRect(x,y,w,h);
+  c.fillStyle=hx('--primary'); c.fillRect(x+w*.7,y,w*.3,h);
+  c.restore();
+  // notches
+  c.globalCompositeOperation='destination-out';
+  c.beginPath(); c.arc(x,y+h/2,26*s,0,7); c.arc(x+w,y+h/2,26*s,0,7); c.fill();
+  c.globalCompositeOperation='source-over';
+  // perforation
+  c.fillStyle=K.rgba('--bg',.55); for(let k=y+h*.1;k<y+h*.9;k+=16){c.fillRect(x+w*.7-2,k,4,9);}
+  c.fillStyle=hx('--primary'); c.fillRect(x+w*.085,y+h*.12,w*.12,h*.045);
+  c.fillStyle=hx('--bg'); c.font=`900 ${90*s}px "Big Shoulders Display"`; c.fillText(COPY.passLines[0].toUpperCase(),x+w*.08,y+h*.53); c.fillText(COPY.passLines[1].toUpperCase(),x+w*.08,y+h*.9);
+  // stub mark: infinity (loop symbol)
+  c.strokeStyle=hx('--text'); c.lineWidth=15; c.lineJoin='round'; c.beginPath();
+  for(let i=0;i<=200;i++){const a=i/200*Math.PI*2, sn=Math.sin(a), d=1+sn*sn; const px=x+w*.85+105*Math.cos(a)/d, py=y+h/2+105*sn*Math.cos(a)/d; i?c.lineTo(px,py):c.moveTo(px,py);} c.closePath(); c.stroke();
+  return cv;
+}
+const FS=`#version 300 es
+precision highp float;
+uniform vec2 R; uniform sampler2D tk; uniform float ph, form, scan, drift; uniform int G[10];
+// theme roles, set from K.color: --bg, --primary, --primary-hi, --accent, --text
+uniform vec3 INK, VIO, VHI, ICE, WARM;
+out vec4 o;
+#define TAU 6.28318530718
+float h21(vec2 p){vec3 q=fract(vec3(p.xyx)*.1031);q+=dot(q,q.yzx+33.33);return fract((q.x+q.y)*q.z);}
+float vn(vec2 p){vec2 i=floor(p),f=fract(p),u=f*f*(3.-2.*f);
+ return mix(mix(h21(i),h21(i+vec2(1,0)),u.x),mix(h21(i+vec2(0,1)),h21(i+vec2(1,1)),u.x),u.y);}
+float fbm(vec2 p){float v=0.,a=.5;for(int i=0;i<4;i++){v+=a*vn(p);p=mat2(.81,-.58,.58,.81)*p*2.03+11.7;a*=.5;}return v/.9375;}
+void main(){
+  vec2 px=gl_FragCoord.xy/R*vec2(1080.,1350.); px.y=1350.-px.y;
+  float CS=10.;
+  vec2 id=floor(px/CS), f=fract(px/CS)-.5;
+  vec2 cc=(id+.5)*CS;
+  // ---- noise field (closed loop in noise space) ----
+  vec2 lt=vec2(cos(TAU*ph),sin(TAU*ph))*.9;
+  vec2 q=cc/420.;
+  vec2 w=vec2(fbm(q*.8+lt),fbm(q*.8+5.2-lt))-.5;
+  float nf=fbm(q+w*1.6+vec2(3.,1.)+lt*.35);
+  nf=smoothstep(.42,.84,nf);
+  vec3 ncol=mix(VIO, ICE, smoothstep(.35,.95,fbm(q*.6+19.+lt*.3)));
+  ncol=mix(ncol, VHI, .3);
+  // ---- pass target (4 sub-samples per cell) ----
+  vec4 tg=vec4(0.);
+  tg=texture(tk,cc/vec2(1080.,1350.));
+  vec3 tcol=tg.a>.01? tg.rgb/max(tg.a,.001) : WARM;
+  vec3 tcol0=tcol;
+  float lum=dot(tcol,vec3(.3,.59,.11));
+  float tv=tg.a*mix(.05, lum>.5? lum : lum*1.3, smoothstep(.12,.3,lum));
+  float calm=1.-.85*exp(-pow((cc.y-1050.)/110.,2.));
+  tv+= (1.-tg.a)*nf*.22*calm;
+  tcol=mix(tcol, tcol*1.12+.03, .5);
+  tcol=mix(ncol*.8, tcol, smoothstep(.0,.5,tg.a));
+  // ---- per-cell staggered resolve ----
+  vec2 dc=(cc-vec2(540.,570.))/vec2(540.,500.);
+  float stag=.55*length(dc)+.35*h21(id+7.);
+  float k=clamp((form*1.75-stag*.8)*1.5,0.,1.);
+  k=k*k*(3.-2.*k);
+  float v=mix(nf*.92, tv*(.93+.07*nf), k);
+  vec3 col3=mix(ncol, tcol, k);
+  // print-pass scan: a soft bright row sweeping down during the hold
+  float sc=exp(-pow((cc.y-scan)/34.,2.))*k*tg.a;
+  v=min(1.,v+sc*.25); col3+=WARM*sc*.35;
+  // ---- glyph or dot ----
+  float useG=step(.6,nf)*step(h21(id+floor(ph*12.)*.37),.55)*(1.-k);
+  vec3 col=INK;
+  float aa=1.5/CS;
+  if(useG>.5){
+    int gi=int(floor(h21(id*1.7+floor(ph*12.+h21(id)*12.))*9.99));
+    vec2 g=(f+.5);
+    g=(g-.5)/.78+.5;
+    if(g.x>0.&&g.x<1.&&g.y>0.&&g.y<1.){
+      int cx=int(floor(g.x*3.)), cy=int(floor(g.y*5.));
+      int bit=(G[gi]>>((4-cy)*3+(2-cx)))&1;
+      col=mix(INK, mix(ncol,ICE,.5)*1.2, float(bit)*(.5+.5*nf));
+    }
+  } else {
+    float r=sqrt(max(v,0.))*.47;
+    float d=length(f);
+    float dotm=smoothstep(r+aa,r-aa,d);
+    col=mix(INK, col3, dotm*mix(.55+.45*nf, 1., k));
+  }
+  // faint base lattice so the grid always breathes
+  col+=VIO*.05*smoothstep(.09,.03,length(f));
+  o=vec4(col,1.);
+}`;
+const cv=$('#gl'), gl=cv.getContext('webgl2',{preserveDrawingBuffer:true,antialias:false});
+const shd=(t,s)=>{const x=gl.createShader(t);gl.shaderSource(x,s);gl.compileShader(x);if(!gl.getShaderParameter(x,gl.COMPILE_STATUS))console.error(gl.getShaderInfoLog(x));return x;};
+const pr=gl.createProgram();gl.attachShader(pr,shd(gl.VERTEX_SHADER,'#version 300 es\nin vec2 a;void main(){gl_Position=vec4(a,0,1);}'));gl.attachShader(pr,shd(gl.FRAGMENT_SHADER,FS));gl.linkProgram(pr);gl.useProgram(pr);
+if(!gl.getProgramParameter(pr,gl.LINK_STATUS))console.error(gl.getProgramInfoLog(pr));
+gl.bindBuffer(gl.ARRAY_BUFFER,gl.createBuffer());gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);
+gl.enableVertexAttribArray(0);gl.vertexAttribPointer(0,2,gl.FLOAT,false,0,0);gl.viewport(0,0,cv.width,cv.height);
+const U=n=>gl.getUniformLocation(pr,n); gl.uniform2f(U('R'),cv.width,cv.height); gl.uniform1i(U('tk'),0); gl.uniform1iv(U('G'),new Int32Array(GL));
+const tex=gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D,tex);
+gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
+gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+// the pass texture + colour uniforms are rebuilt whenever fonts load or the theme changes (cheap key check each frame)
+let themeKey='';
+const ROLES=['--bg','--primary','--primary-hi','--accent','--text'];
+function build(){ gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL,true); gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,drawPass());
+  [['INK','--bg'],['VIO','--primary'],['VHI','--primary-hi'],['ICE','--accent'],['WARM','--text']].forEach(([u,r])=>gl.uniform3fv(U(u),K.color(r))); }
+document.fonts.ready.then(()=>{themeKey='';});
+window.onTheme=()=>{themeKey='';};
+window.frame=function(t){
+  t=((t%DUR)+DUR)%DUR;
+  const cs=getComputedStyle(document.documentElement), key=document.fonts.status+ROLES.map(r=>cs.getPropertyValue(r)).join();
+  if(key!==themeKey){ build(); themeKey=key; }
+  // resolve 0.7-2.1, hold, dissolve 3.65-4.85
+  const form = t<3 ? premium(seg(t,0.7,2.1)) : 1-K.inOutCubic(seg(t,3.65,4.85));
+  const scan = K.lerp(330,830,K.inOutSine(seg(t,2.0,3.5)));
+  gl.uniform1f(U('ph'),t/DUR); gl.uniform1f(U('form'),form); gl.uniform1f(U('scan'),scan);
+  gl.drawArrays(gl.TRIANGLES,0,3);
+  const hi=outExpo(seg(t,1.75,2.4)), ho=inExpo(seg(t,3.5,3.85));
+  css('#head',{opacity:hi*(1-ho),transform:`translateY(${(1-hi)*40-ho*24}px)`,filter:`blur(${(1-hi)*6+ho*5}px)`});
+  css('#h1',{backgroundPosition:`${(t/DUR)*220}% 0`});
+  const si=outExpo(seg(t,1.95,2.6));
+  css('#sub',{opacity:si*(1-ho),transform:`translateY(${(1-si)*20}px)`});
+};
+frame(0);
+</script></body></html>

@@ -1,0 +1,11 @@
+{
+  "name": "motion-design-skills",
+  "owner": { "name": "BusyBee3333" },
+  "plugins": [
+    {
+      "name": "motion-design",
+      "source": "./",
+      "description": "Guided motion-design videos: intake, shot plan, 28 deterministic HTML-to-video styles."
+    }
+  ]
+}

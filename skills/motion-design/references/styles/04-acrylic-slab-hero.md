@@ -1,0 +1,9 @@
+# 04 Showcase Hero
+**Feeling:** premium, physical, calm, expensive
+**Good for:** product reveals, end cards, any shot where one object must feel real and collectible
+**Avoid when:** you need to show several items or explain steps; it is a single-object hero
+**Mechanism:** true CSS 3D showcase case (preserve-3d): front and back faces, 4 solid edge faces and 21 stacked rounded "rings" that read as rounded acrylic thickness. The turn is a periodic monotone-cubic (Fritsch-Carlson) curve over rotateY keyframes, so it is fast mid-turn, lands softly and never overshoots. Glare position, foil sheen, face shading, edge brightness and contact-shadow width are all pure functions of the angle (they sweep with the turn, never pop). Floor reflection via -webkit-box-reflect with a fade mask. Camera locked.
+**Timing:** front drift -24°→-16° (0-1.05 s), fast turn to back 1.45-2.25 s (peak ~250°/s), soft landing on back 156°→166° (2.25-3.05 s), fast turn home 3.45-4.3 s, slow drift 330°→336° to loop. 4 px bob, ±1.2° tilt. DUR 6 s, POSTER 5.3 s.
+**Swap points:** COPY `eyebrow`, `footer`, `caseEyebrow`, `caseTitle` (≤ 12 chars), `caseNumber` (2 chars), `cardName` (≤ 12 chars), `backEyebrow`, `backTitle` (≤ 12 chars), `backMark` (≤ 6 chars). Art: `HERO_IMG` constant at the top of the script (sets `--art` on the front `.card .art`). Theme roles: `--warm` (card body), `--primary`/`--primary-lo`/`--primary-hi` (card back, rim light), `--accent` (edge tint, foil), `--text2` (back label).
+**Adapting:** For a single reveal, play 0→1.4 s then hold the front drift. For 16:9, keep the case centred and add copy left and right, or shift `.s3` left and put a feature list on the right. To show a different object, keep the rig and replace the face contents.
+**Credits:** motion-video-kit product-hero realism (measured non-smoothstep turn, visible thickness, glare that explains the angle, soft floor reflection, locked camera).

@@ -1,0 +1,104 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link rel="stylesheet" href="../kit.css"><script src="../kit.js"></script>
+<style>
+#stage{background:var(--bg)}
+.hair{position:absolute;background:rgb(var(--text-rgb) / .28)}
+.mono{font-family:var(--mono);font-weight:700;letter-spacing:.16em;text-transform:uppercase}
+.reg{position:absolute;width:44px;height:44px;color:var(--text)}
+#tl{left:22px;top:22px}#tr{right:22px;top:22px}#bl{left:22px;bottom:22px}#br{right:22px;bottom:22px}
+#t1{position:absolute;left:64px;top:74px;font-size:22px;color:var(--accent)}
+#t2{position:absolute;right:64px;top:74px;font-size:22px;color:rgb(var(--text-rgb) / .7)}
+#lab{position:absolute;left:64px;top:150px;font-size:24px;color:rgb(var(--text-rgb) / .7)}
+#num{position:absolute;left:52px;top:150px;font-family:var(--mono);font-weight:700;font-size:400px;line-height:1;letter-spacing:-.04em;color:var(--text)}
+#of{position:absolute;left:64px;top:548px;font-size:20px;color:rgb(var(--text-rgb) / .5)}
+#si{position:absolute;left:596px;top:176px;font-size:150px;line-height:.84;color:var(--text)}
+#si .ic{color:var(--accent)}
+#bt{position:absolute;left:596px;top:440px;width:420px;font-family:var(--sans);font-weight:600;font-size:30px;line-height:1.3;color:rgb(var(--text-rgb) / .82)}
+#grid{position:absolute;left:64px;top:612px;width:952px;height:540px}
+.cell{position:absolute;width:238px;height:180px;overflow:hidden}
+.cell .cl{position:absolute;left:18px;top:16px;font-size:16px;letter-spacing:.2em}
+.cell .cn{position:absolute;left:14px;top:38px;font-family:var(--mono);font-weight:700;font-size:64px;letter-spacing:-.03em;line-height:1}
+.cell .tk{position:absolute;right:16px;bottom:16px;width:74px;height:34px}
+.cell .scan{position:absolute;left:0;right:0;height:2px;background:rgb(var(--bg-rgb) / .5)}
+.cell .st{position:absolute;left:18px;bottom:18px;font-size:15px;letter-spacing:.2em}
+#hl{position:absolute;left:64px;top:1192px;font-size:96px;color:var(--text);white-space:nowrap}
+#hl .f{color:var(--accent)}
+#bar{position:absolute;left:64px;top:126px;height:4px;background:var(--accent)}
+</style></head><body><div id="stage">
+<svg class="reg" id="tl" viewBox="0 0 44 44"><circle cx="22" cy="22" r="11" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M22 0V44M0 22H44" stroke="currentColor" stroke-width="1.5"/></svg>
+<svg class="reg" id="tr" viewBox="0 0 44 44"><circle cx="22" cy="22" r="11" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M22 0V44M0 22H44" stroke="currentColor" stroke-width="1.5"/></svg>
+<svg class="reg" id="bl" viewBox="0 0 44 44"><circle cx="22" cy="22" r="11" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M22 0V44M0 22H44" stroke="currentColor" stroke-width="1.5"/></svg>
+<svg class="reg" id="br" viewBox="0 0 44 44"><circle cx="22" cy="22" r="11" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M22 0V44M0 22H44" stroke="currentColor" stroke-width="1.5"/></svg>
+<div id="t1" class="mono" data-copy="topLeft"></div><div id="t2" class="mono" data-copy="topRight"></div>
+<div class="hair" style="left:64px;right:64px;top:126px;height:1px"></div>
+<div id="bar"></div>
+<div id="lab" class="mono" data-copy="counterLabel"></div>
+<div id="num">01</div>
+<div id="of" class="mono" data-copy="counterNote"></div>
+<div class="hair" style="left:572px;top:150px;width:1px;height:420px"></div>
+<div id="si" class="display"><span data-copy="statementA"></span><br><span class="ic" data-copy="statementB"></span></div>
+<div id="bt" data-copy="body"></div>
+<div class="hair" style="left:64px;right:64px;top:594px;height:1px"></div>
+<div id="grid"></div>
+<div class="hair" style="left:64px;right:64px;top:1168px;height:1px"></div>
+<div id="hl" class="display"><span data-copy="headlineA"></span> <span class="f" data-copy="headlineB"></span></div>
+
+<div class="grain" style="opacity:.05"></div><div class="vignette" style="opacity:.6"></div>
+</div>
+<script>
+// COPY: topLeft/topRight = header labels, counterLabel/counterNote = above/below the big numeral, statementA/statementB = 2-line
+// statement (B in accent), body = short paragraph, headlineA/headlineB = bottom line (B in accent), cellLabel/cellStatus = per-cell tags.
+const COPY = K.copy({
+  topLeft:'Lumen', topRight:'Sketch · Animate · Export',
+  counterLabel:'Frame no.', counterNote:'Same project · every frame',
+  statementA:'On', statementB:'beat.', body:'Every frame lands on time, from draft to done.',
+  headlineA:'One idea.', headlineB:'Every frame.', cellLabel:'Frame', cellStatus:'On',
+});
+K.fill(COPY);
+window.DUR=5.2; window.POSTER=2.9;
+const {seg,smoother,lerp,clamp,$,$$,css}=K;
+const G=$('#grid'), cells=[];
+// small pass glyph per cell (colours are CSS custom properties, so they follow the theme)
+const TK=(fill,stub,line)=>`<svg class="tk" viewBox="0 0 74 34"><defs></defs><path d="M6 0H68a6 6 0 0 1 6 6v7a4 4 0 0 0 0 8v7a6 6 0 0 1-6 6H6a6 6 0 0 1-6-6v-7a4 4 0 0 0 0-8V6a6 6 0 0 1 6-6z" style="fill:${fill}"/><rect x="50" y="0" width="1.5" height="34" style="fill:${line}"/><rect x="51.5" y="0" width="16" height="34" style="fill:${stub}" opacity=".0"/></svg>`;
+for(let i=0;i<12;i++){
+  const c=document.createElement('div'); c.className='cell';
+  const col=i%4,row=Math.floor(i/4);
+  c.style.left=col*238+'px'; c.style.top=row*180+'px';
+  c.innerHTML=`<div class="cl mono">${COPY.cellLabel}</div><div class="cn">${String(i+1).padStart(2,'0')}</div><div class="tkw"></div><div class="st mono"></div><div class="scan"></div>`;
+  G.appendChild(c); cells.push(c);
+}
+// grid hairlines
+for(let i=0;i<=4;i++){const h=document.createElement('div');h.className='hair';css(h,{left:i*238+'px',top:'0',width:'1px',height:'540px'});G.appendChild(h);}
+for(let i=0;i<=3;i++){const h=document.createElement('div');h.className='hair';css(h,{left:'0',top:i*180+'px',width:'952px',height:'1px'});G.appendChild(h);}
+const STEP=.4;
+const BG='var(--bg)', TX='var(--text)', ACC='var(--accent)', PRI='var(--primary)';
+window.frame=function(t){
+  t=((t%DUR)+DUR)%DUR;
+  const n=Math.min(11,Math.floor(t/STEP));      // active cell index (hard cuts)
+  const f=t-n*STEP, fin=t>=12*STEP;             // final beat: full grid "still in"
+  const ff=fin?(t-12*STEP):0;
+  cells.forEach((c,i)=>{
+    const st=i<n?'past':i===n?(fin?'past':'act'):'fut';
+    const cn=c.children[1], cl=c.children[0], tw=c.children[2], sl=c.children[3], sc=c.children[4];
+    let bg='transparent', fg='rgb(var(--text-rgb) / .22)', lab='rgb(var(--text-rgb) / .22)';
+    if(st==='past'){bg=fin?ACC:'rgb(var(--primary-rgb) / .32)'; fg=fin?BG:TX; lab=fin?BG:'rgb(var(--accent-rgb) / .9)';}
+    if(st==='act'){bg=ACC; fg=BG; lab=BG;}
+    c.style.background=bg; cn.style.color=fg; cl.style.color=lab;
+    const tkHTML = st==='act'?TK(BG,BG,ACC):st==='past'?TK(fin?BG:TX,PRI,fin?ACC:PRI):'';
+    if(tw.dataset.k!==tkHTML){tw.innerHTML=tkHTML; tw.dataset.k=tkHTML;}
+    sl.textContent = st==='fut'?'':COPY.cellStatus; sl.style.color=lab;
+    // tertiary: scan hairline on the active cell only (linear tick, not spatial easing)
+    sc.style.display=st==='act'?'block':'none'; sc.style.top=(f/STEP*180).toFixed(1)+'px';
+  });
+  const shown=fin?12:n+1;
+  $('#num').textContent=String(shown).padStart(2,'0');
+  $('#bar').style.width=(952*shown/12).toFixed(1)+'px';
+  // "in." blinks to ice on every cut (pulse), stays ice
+  const pulse=f<.08 && !fin;
+  $('#si .ic').style.color = pulse?TX:ACC;
+  $('#num').style.color = pulse?ACC:TX;
+  $('#hl .f').style.color = fin?TX:ACC;
+  
+};
+frame(0);
+</script></body></html>
